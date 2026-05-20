@@ -1,0 +1,1023 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MarketPulse · Аналитика</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0d0d0d;--bg2:#141414;--bg3:#1e1e1e;--bg4:#252525;
+  --border:#2a2a2a;--orange:#ff6600;--orange-dim:rgba(255,102,0,.12);
+  --orange-hover:rgba(255,102,0,.2);
+  --text:#f0f0f0;--muted:#888;--muted2:#555;
+  --green:#00c853;--red:#f44336;--yellow:#ffb300;
+  --sidebar:240px;
+}
+html,body{height:100%;overflow:hidden}
+body{background:var(--bg);color:var(--text);font-family:'Segoe UI',Arial,sans-serif;font-size:14px;display:flex}
+
+/* ── SIDEBAR ── */
+#sidebar{
+  width:var(--sidebar);min-width:var(--sidebar);height:100vh;
+  background:var(--bg2);border-right:1px solid var(--border);
+  display:flex;flex-direction:column;overflow:hidden;
+}
+.logo{
+  padding:20px 16px 16px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;gap:10px;
+}
+.logo-icon{
+  width:38px;height:38px;background:var(--orange);border-radius:8px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:18px;font-weight:900;color:#000;flex-shrink:0;
+}
+.logo-text{font-size:15px;font-weight:700;line-height:1.2}
+.logo-sub{font-size:11px;color:var(--muted);margin-top:2px}
+
+nav{flex:1;padding:12px 0;overflow-y:auto}
+.nav-item{
+  display:flex;align-items:center;gap:10px;
+  padding:11px 16px;cursor:pointer;transition:background .15s;
+  border-left:3px solid transparent;color:var(--muted);
+  user-select:none;
+}
+.nav-item:hover{background:var(--orange-dim);color:var(--text)}
+.nav-item.active{
+  background:var(--orange-dim);color:var(--orange);
+  border-left-color:var(--orange);
+}
+.nav-icon{font-size:18px;width:22px;text-align:center;flex-shrink:0}
+.nav-label{font-size:13px;font-weight:500}
+.nav-badge{
+  margin-left:auto;background:var(--red);color:#fff;
+  font-size:11px;font-weight:700;padding:2px 6px;border-radius:10px;
+}
+
+.sidebar-footer{
+  padding:12px 16px;border-top:1px solid var(--border);
+  font-size:11px;color:var(--muted);
+}
+#last-update{color:var(--muted2);font-size:11px;margin-top:3px}
+
+/* ── MAIN ── */
+#main{flex:1;height:100vh;overflow-y:auto;display:flex;flex-direction:column}
+
+/* ── TOP BAR ── */
+#topbar{
+  background:var(--bg2);border-bottom:1px solid var(--border);
+  padding:14px 24px;display:flex;align-items:center;gap:16px;flex-shrink:0;
+}
+#page-title{font-size:18px;font-weight:700;flex:1}
+.btn{
+  padding:7px 16px;border-radius:6px;border:1px solid var(--border);
+  background:var(--bg3);color:var(--text);cursor:pointer;
+  font-size:13px;transition:all .15s;
+}
+.btn:hover{border-color:var(--orange);color:var(--orange)}
+.btn.active{background:var(--orange);border-color:var(--orange);color:#000;font-weight:600}
+
+/* ── KPI ROW ── */
+#kpi-row{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));
+  gap:12px;padding:20px 24px 0;flex-shrink:0;
+}
+.kpi-card{
+  background:var(--bg3);border:1px solid var(--border);border-radius:10px;
+  padding:16px;transition:border-color .2s;
+}
+.kpi-card:hover{border-color:var(--orange)}
+.kpi-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
+.kpi-value{font-size:24px;font-weight:800;line-height:1}
+.kpi-value.orange{color:var(--orange)}
+.kpi-value.green{color:var(--green)}
+.kpi-value.red{color:var(--red)}
+.kpi-value.yellow{color:var(--yellow)}
+.kpi-sub{font-size:11px;color:var(--muted);margin-top:4px}
+
+/* ── CONTENT ── */
+#content{flex:1;padding:20px 24px 24px;overflow:hidden}
+.section{display:none;height:100%}
+.section.active{display:flex;flex-direction:column;gap:16px}
+
+/* ── CONTROLS ROW ── */
+.controls{display:flex;align-items:center;gap:8px;flex-wrap:wrap;flex-shrink:0}
+.controls-label{font-size:12px;color:var(--muted);margin-right:4px}
+.btn-group{display:flex;gap:4px}
+
+/* ── GRID CARDS ── */
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px;flex:1;min-height:0}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;flex:1;min-height:0}
+.card{
+  background:var(--bg3);border:1px solid var(--border);border-radius:10px;
+  padding:18px;display:flex;flex-direction:column;min-height:0;
+}
+.card-title{
+  font-size:13px;font-weight:600;color:var(--muted);
+  text-transform:uppercase;letter-spacing:.5px;margin-bottom:14px;flex-shrink:0;
+}
+.chart-wrap{flex:1;position:relative;min-height:0}
+.chart-wrap canvas{max-height:100%!important}
+
+/* ── TABLE ── */
+.table-wrap{flex:1;overflow-y:auto;min-height:0;border-radius:8px}
+table{width:100%;border-collapse:collapse}
+thead{position:sticky;top:0;z-index:1}
+th{
+  background:var(--bg4);padding:10px 12px;text-align:left;
+  font-size:11px;font-weight:600;color:var(--muted);
+  text-transform:uppercase;letter-spacing:.4px;white-space:nowrap;
+  cursor:pointer;user-select:none;border-bottom:1px solid var(--border);
+}
+th:hover{color:var(--orange)}
+th.sort-asc::after{content:" ↑"}
+th.sort-desc::after{content:" ↓"}
+td{
+  padding:9px 12px;border-bottom:1px solid var(--border);
+  font-size:13px;white-space:nowrap;
+}
+tr:hover td{background:var(--orange-hover)}
+
+/* ── BADGES ── */
+.badge{
+  display:inline-flex;align-items:center;
+  padding:3px 9px;border-radius:12px;font-size:11px;font-weight:700;
+}
+.badge-red{background:rgba(244,67,54,.2);color:#f44336}
+.badge-orange{background:rgba(255,102,0,.2);color:#ff6600}
+.badge-green{background:rgba(0,200,83,.2);color:#00c853}
+.badge-blue{background:rgba(33,150,243,.2);color:#42a5f5}
+.badge-yellow{background:rgba(255,179,0,.2);color:#ffb300}
+
+/* ── PLATFORM COMPARE ── */
+.platform-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;flex-shrink:0}
+.platform-card{
+  background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:20px;
+}
+.platform-name{font-size:20px;font-weight:800;margin-bottom:14px}
+.platform-name.wb{color:#cc0066}
+.platform-name.ozon{color:#005bff}
+.platform-stat{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)}
+.platform-stat:last-child{border:none}
+.platform-stat-label{color:var(--muted);font-size:13px}
+.platform-stat-val{font-weight:600;font-size:13px}
+
+/* ── LOADER ── */
+.loader{
+  display:flex;align-items:center;justify-content:center;
+  height:200px;color:var(--muted);font-size:13px;
+}
+.loader::before{
+  content:"";width:20px;height:20px;border:2px solid var(--border);
+  border-top-color:var(--orange);border-radius:50%;
+  animation:spin .7s linear infinite;margin-right:10px;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ── ROI COLORS ── */
+.roi-high{color:var(--green)}
+.roi-mid{color:var(--yellow)}
+.roi-low{color:var(--red)}
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:var(--bg2)}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+::-webkit-scrollbar-thumb:hover{background:var(--orange)}
+
+/* ── RESPONSIVE ── */
+@media(max-width:900px){
+  :root{--sidebar:52px}
+  .nav-label,.logo-text,.logo-sub,.sidebar-footer{display:none}
+  .logo{padding:14px 0;justify-content:center}
+  .nav-item{justify-content:center;padding:14px 0}
+  .nav-badge{display:none}
+  .grid-2,.grid-3{grid-template-columns:1fr}
+  #kpi-row{grid-template-columns:repeat(2,1fr)}
+}
+</style>
+</head>
+<body>
+
+<!-- ═══════════════ SIDEBAR ═══════════════ -->
+<div id="sidebar">
+  <div class="logo">
+    <div class="logo-icon">M</div>
+    <div>
+      <div class="logo-text">MarketPulse</div>
+      <div class="logo-sub">Аналитика</div>
+    </div>
+  </div>
+
+  <nav>
+    <div class="nav-item active" data-section="finance">
+      <span class="nav-icon">💰</span>
+      <span class="nav-label">Финансы</span>
+    </div>
+    <div class="nav-item" data-section="products">
+      <span class="nav-icon">📊</span>
+      <span class="nav-label">Товары</span>
+    </div>
+    <div class="nav-item" data-section="stock">
+      <span class="nav-icon">📦</span>
+      <span class="nav-label">Склад</span>
+      <span class="nav-badge" id="badge-urgent">0</span>
+    </div>
+    <div class="nav-item" data-section="cards">
+      <span class="nav-icon">🎨</span>
+      <span class="nav-label">Карточки</span>
+    </div>
+    <div class="nav-item" data-section="platform">
+      <span class="nav-icon">⚖️</span>
+      <span class="nav-label">WB vs Ozon</span>
+    </div>
+  </nav>
+
+  <div class="sidebar-footer">
+    <div>Авто-обновление: 5 мин</div>
+    <div id="last-update">—</div>
+  </div>
+</div>
+
+<!-- ═══════════════ MAIN ═══════════════ -->
+<div id="main">
+
+  <!-- TOP BAR -->
+  <div id="topbar">
+    <div id="page-title">Финансы</div>
+    <button class="btn" onclick="refreshAll()">↻ Обновить</button>
+  </div>
+
+  <!-- KPI ROW -->
+  <div id="kpi-row">
+    <div class="kpi-card">
+      <div class="kpi-label">Выручка / 30 дней</div>
+      <div class="kpi-value orange" id="kpi-revenue">—</div>
+      <div class="kpi-sub">WB + Ozon</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Прибыль / 30 дней</div>
+      <div class="kpi-value green" id="kpi-profit">—</div>
+      <div class="kpi-sub" id="kpi-margin-sub">маржа —%</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Продано / 30 дней</div>
+      <div class="kpi-value" id="kpi-units">—</div>
+      <div class="kpi-sub">штук</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Срочно докупить</div>
+      <div class="kpi-value red" id="kpi-urgent">—</div>
+      <div class="kpi-sub" id="kpi-reorder-sub">позиций</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Всего SKU</div>
+      <div class="kpi-value" id="kpi-skus">—</div>
+      <div class="kpi-sub">товаров в БД</div>
+    </div>
+  </div>
+
+  <!-- ══ CONTENT ══ -->
+  <div id="content">
+
+    <!-- ── ФИНАНСЫ ── -->
+    <div class="section active" id="section-finance">
+      <div class="controls">
+        <span class="controls-label">Период:</span>
+        <div class="btn-group" id="period-btns">
+          <button class="btn" data-period="7">7 дней</button>
+          <button class="btn active" data-period="30">30 дней</button>
+          <button class="btn" data-period="90">90 дней</button>
+          <button class="btn" data-period="weekly">Недели</button>
+          <button class="btn" data-period="monthly">Месяцы</button>
+          <button class="btn" data-period="quarterly">Кварталы</button>
+        </div>
+        <span class="controls-label" style="margin-left:12px">Площадка:</span>
+        <div class="btn-group" id="source-btns">
+          <button class="btn active" data-source="all">Все</button>
+          <button class="btn" data-source="wb">WB</button>
+          <button class="btn" data-source="ozon">Ozon</button>
+        </div>
+      </div>
+
+      <div class="grid-2" style="flex:1;min-height:0">
+        <div class="card">
+          <div class="card-title">Выручка и прибыль</div>
+          <div class="chart-wrap"><canvas id="chart-revenue"></canvas></div>
+        </div>
+        <div class="card">
+          <div class="card-title">Продажи (штук)</div>
+          <div class="chart-wrap"><canvas id="chart-units"></canvas></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── ТОВАРЫ ── -->
+    <div class="section" id="section-products">
+      <div class="controls">
+        <span class="controls-label">Вид:</span>
+        <div class="btn-group">
+          <button class="btn active" onclick="showProductView('profit')">Рентабельность</button>
+          <button class="btn" onclick="showProductView('abc')">ABC-анализ</button>
+        </div>
+        <input type="text" id="product-search"
+          placeholder="Поиск товара..."
+          style="margin-left:auto;padding:7px 12px;background:var(--bg3);border:1px solid var(--border);
+                 color:var(--text);border-radius:6px;font-size:13px;width:220px"
+          oninput="filterProducts()">
+      </div>
+
+      <div id="view-profit" style="flex:1;min-height:0;display:flex;flex-direction:column">
+        <div class="table-wrap">
+          <table id="table-profit">
+            <thead>
+              <tr>
+                <th onclick="sortTable('table-profit',0)">Товар</th>
+                <th onclick="sortTable('table-profit',1)">Категория</th>
+                <th onclick="sortTable('table-profit',2)">Себест.</th>
+                <th onclick="sortTable('table-profit',3)">Продано</th>
+                <th onclick="sortTable('table-profit',4)">Выручка</th>
+                <th onclick="sortTable('table-profit',5)">Комиссия</th>
+                <th onclick="sortTable('table-profit',6)">Логистика</th>
+                <th onclick="sortTable('table-profit',7)">Прибыль</th>
+                <th onclick="sortTable('table-profit',8)">ROI %</th>
+              </tr>
+            </thead>
+            <tbody id="tbody-profit"><tr><td colspan="9" class="loader"></td></tr></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div id="view-abc" style="flex:1;min-height:0;display:none;flex-direction:column">
+        <div class="grid-2" style="flex:1;min-height:0">
+          <div class="card">
+            <div class="card-title">Распределение ABC</div>
+            <div class="chart-wrap"><canvas id="chart-abc-pie"></canvas></div>
+          </div>
+          <div class="card" style="padding:0;overflow:hidden">
+            <div class="table-wrap" style="height:100%">
+              <table id="table-abc">
+                <thead><tr>
+                  <th>Товар</th>
+                  <th onclick="sortTable('table-abc',1)">Прибыль 30д</th>
+                  <th onclick="sortTable('table-abc',2)">Нараст. %</th>
+                  <th>Класс</th>
+                </tr></thead>
+                <tbody id="tbody-abc"><tr><td colspan="4" class="loader"></td></tr></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── СКЛАД ── -->
+    <div class="section" id="section-stock">
+      <div class="controls">
+        <span class="controls-label">Фильтр:</span>
+        <div class="btn-group" id="stock-filter-btns">
+          <button class="btn active" data-filter="all">Все</button>
+          <button class="btn" data-filter="urgent">🔴 Срочно</button>
+          <button class="btn" data-filter="reorder">⚠️ Докупить</button>
+          <button class="btn" data-filter="ok">✅ Норма</button>
+        </div>
+        <span id="stock-count" style="margin-left:auto;color:var(--muted);font-size:13px"></span>
+      </div>
+
+      <div style="flex:1;min-height:0;display:flex;flex-direction:column">
+        <div class="table-wrap">
+          <table id="table-stock">
+            <thead><tr>
+              <th onclick="sortTable('table-stock',0)">Товар</th>
+              <th onclick="sortTable('table-stock',1)">SKU</th>
+              <th>Площадка</th>
+              <th onclick="sortTable('table-stock',3)">Остаток</th>
+              <th onclick="sortTable('table-stock',4)">Продаж/день</th>
+              <th onclick="sortTable('table-stock',5)">Запас (дней)</th>
+              <th>Статус</th>
+            </tr></thead>
+            <tbody id="tbody-stock"><tr><td colspan="7" class="loader"></td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── КАРТОЧКИ ── -->
+    <div class="section" id="section-cards">
+      <div class="controls">
+        <span class="controls-label">Период:</span>
+        <div class="btn-group" id="cards-period-btns">
+          <button class="btn active" data-days="7">7 дней</button>
+          <button class="btn" data-days="14">14 дней</button>
+          <button class="btn" data-days="30">30 дней</button>
+        </div>
+        <input type="text" id="card-search"
+          placeholder="Поиск..."
+          style="margin-left:auto;padding:7px 12px;background:var(--bg3);border:1px solid var(--border);
+                 color:var(--text);border-radius:6px;font-size:13px;width:200px"
+          oninput="filterCards()">
+      </div>
+
+      <div class="grid-2" style="height:220px;flex-shrink:0">
+        <div class="card">
+          <div class="card-title">CTR топ-10 карточек (%)</div>
+          <div class="chart-wrap"><canvas id="chart-ctr"></canvas></div>
+        </div>
+        <div class="card">
+          <div class="card-title">Конверсия в корзину топ-10 (%)</div>
+          <div class="chart-wrap"><canvas id="chart-cr"></canvas></div>
+        </div>
+      </div>
+
+      <div style="flex:1;min-height:0;display:flex;flex-direction:column">
+        <div class="table-wrap">
+          <table id="table-cards">
+            <thead><tr>
+              <th>Товар</th>
+              <th>Площадка</th>
+              <th>Дата</th>
+              <th onclick="sortTable('table-cards',3)">Показы</th>
+              <th onclick="sortTable('table-cards',4)">Клики</th>
+              <th onclick="sortTable('table-cards',5)">CTR %</th>
+              <th onclick="sortTable('table-cards',6)">В корзину</th>
+              <th onclick="sortTable('table-cards',7)">Конв. %</th>
+              <th>Оценка</th>
+            </tr></thead>
+            <tbody id="tbody-cards"><tr><td colspan="9" class="loader"></td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── WB vs OZON ── -->
+    <div class="section" id="section-platform">
+      <div class="platform-row" id="platform-compare">
+        <div class="loader"></div>
+      </div>
+      <div class="grid-2" style="flex:1;min-height:0">
+        <div class="card">
+          <div class="card-title">Выручка vs Чистая выручка</div>
+          <div class="chart-wrap"><canvas id="chart-platform-bar"></canvas></div>
+        </div>
+        <div class="card">
+          <div class="card-title">Доля выручки по площадкам</div>
+          <div class="chart-wrap"><canvas id="chart-platform-pie"></canvas></div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /content -->
+</div><!-- /main -->
+
+<script>
+// ═══════════════ CONFIG ═══════════════
+const API = '';  // same origin
+Chart.defaults.color = '#888';
+Chart.defaults.borderColor = '#2a2a2a';
+Chart.defaults.font.family = "'Segoe UI', Arial, sans-serif";
+
+// ═══════════════ STATE ═══════════════
+let state = {
+  period: '30',
+  source: 'all',
+  cardsDays: 7,
+  stockFilter: 'all',
+  currentSection: 'finance',
+  charts: {},
+  data: { finance: null, products: null, abc: null, stock: null, cards: null, platform: null },
+  sortState: {},
+  productView: 'profit',
+};
+
+// ═══════════════ UTILS ═══════════════
+const fmt = n => n == null ? '—' : Number(n).toLocaleString('ru-RU');
+const fmtRub = n => n == null ? '—' : '₽' + Number(n).toLocaleString('ru-RU');
+const fmtPct = n => n == null ? '—' : Number(n).toFixed(1) + '%';
+
+async function apiFetch(path) {
+  const r = await fetch(API + path);
+  if (!r.ok) throw new Error(r.status);
+  return r.json();
+}
+
+function setLoading(tbodyId, cols) {
+  document.getElementById(tbodyId).innerHTML =
+    `<tr><td colspan="${cols}" class="loader"></td></tr>`;
+}
+
+// ═══════════════ NAVIGATION ═══════════════
+document.querySelectorAll('.nav-item').forEach(el => {
+  el.addEventListener('click', () => {
+    const sec = el.dataset.section;
+    document.querySelectorAll('.nav-item').forEach(x => x.classList.remove('active'));
+    el.classList.add('active');
+    document.querySelectorAll('.section').forEach(x => x.classList.remove('active'));
+    document.getElementById('section-' + sec).classList.add('active');
+    const titles = {finance:'Финансы',products:'Товары',stock:'Склад',cards:'Карточки',platform:'WB vs Ozon'};
+    document.getElementById('page-title').textContent = titles[sec] || sec;
+    state.currentSection = sec;
+    loadSection(sec);
+  });
+});
+
+function loadSection(sec) {
+  switch(sec) {
+    case 'finance':  loadFinance(); break;
+    case 'products': loadProducts(); break;
+    case 'stock':    loadStock(); break;
+    case 'cards':    loadCards(); break;
+    case 'platform': loadPlatform(); break;
+  }
+}
+
+// ═══════════════ PERIOD & SOURCE BUTTONS ═══════════════
+document.querySelectorAll('#period-btns .btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('#period-btns .btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    state.period = btn.dataset.period;
+    loadFinance();
+  });
+});
+
+document.querySelectorAll('#source-btns .btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('#source-btns .btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    state.source = btn.dataset.source;
+    loadFinance();
+  });
+});
+
+document.querySelectorAll('#stock-filter-btns .btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('#stock-filter-btns .btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    state.stockFilter = btn.dataset.filter;
+    renderStock();
+  });
+});
+
+document.querySelectorAll('#cards-period-btns .btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('#cards-period-btns .btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    state.cardsDays = parseInt(btn.dataset.days);
+    loadCards();
+  });
+});
+
+// ═══════════════ KPIs ═══════════════
+async function loadKPIs() {
+  try {
+    const d = await apiFetch('/api/kpis');
+    document.getElementById('kpi-revenue').textContent = fmtRub(d.revenue_30d);
+    document.getElementById('kpi-profit').textContent  = fmtRub(d.profit_30d);
+    document.getElementById('kpi-units').textContent   = fmt(d.units_30d);
+    document.getElementById('kpi-urgent').textContent  = fmt(d.urgent);
+    document.getElementById('kpi-skus').textContent    = fmt(d.total_skus);
+    document.getElementById('kpi-margin-sub').textContent = 'маржа ' + fmtPct(d.margin_pct);
+    document.getElementById('kpi-reorder-sub').textContent =
+      (d.reorder || 0) + ' ещё к докупке';
+    const badge = document.getElementById('badge-urgent');
+    badge.textContent = d.urgent || 0;
+    badge.style.display = (d.urgent > 0) ? '' : 'none';
+  } catch(e) { console.error('KPI error', e); }
+}
+
+// ═══════════════ FINANCE ═══════════════
+async function loadFinance() {
+  const p = state.period;
+  const src = state.source;
+  let url;
+  if (p === 'weekly')     url = `/api/profit/weekly?weeks=12&source=${src}`;
+  else if (p === 'monthly')    url = `/api/profit/monthly`;
+  else if (p === 'quarterly')  url = `/api/profit/quarterly`;
+  else url = `/api/profit/daily?days=${p}&source=${src}`;
+
+  try {
+    const raw = await apiFetch(url);
+    renderFinanceCharts(raw, p);
+  } catch(e) { console.error('Finance error', e); }
+}
+
+function groupFinanceData(raw, period) {
+  // Aggregate WB+Ozon into single series
+  const map = {};
+  raw.forEach(r => {
+    let key = r.day || r.week_start || r.month ||
+              (r.year && r.quarter ? `${r.year} Q${r.quarter}` : '');
+    if (!map[key]) map[key] = { revenue: 0, net_revenue: 0, gross_profit: 0, units: 0 };
+    map[key].revenue      += Number(r.revenue      || 0);
+    map[key].net_revenue  += Number(r.net_revenue  || 0);
+    map[key].gross_profit += Number(r.gross_profit || 0);
+    map[key].units        += Number(r.units_sold   || 0);
+  });
+  const keys = Object.keys(map).sort();
+  const labels = keys.map(k => {
+    if (/^\d{4}-\d{2}-\d{2}/.test(k)) {
+      const d = new Date(k);
+      return period === 'weekly'
+        ? d.toLocaleDateString('ru-RU', {day:'2-digit',month:'short'})
+        : d.toLocaleDateString('ru-RU', {day:'2-digit',month:'2-digit'});
+    }
+    return k;
+  });
+  return { labels, data: keys.map(k => map[k]) };
+}
+
+function makeChart(id, cfg) {
+  if (state.charts[id]) state.charts[id].destroy();
+  const ctx = document.getElementById(id);
+  if (!ctx) return;
+  state.charts[id] = new Chart(ctx, cfg);
+}
+
+function renderFinanceCharts(raw, period) {
+  const { labels, data } = groupFinanceData(raw, period);
+  const revenue  = data.map(d => d.revenue);
+  const profit   = data.map(d => d.gross_profit);
+  const units    = data.map(d => d.units);
+
+  makeChart('chart-revenue', {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [
+        {
+          label: 'Выручка',
+          data: revenue,
+          borderColor: '#ff6600',
+          backgroundColor: 'rgba(255,102,0,.08)',
+          fill: true,
+          tension: .35,
+          pointRadius: labels.length > 60 ? 0 : 3,
+        },
+        {
+          label: 'Прибыль',
+          data: profit,
+          borderColor: '#00c853',
+          backgroundColor: 'rgba(0,200,83,.06)',
+          fill: true,
+          tension: .35,
+          pointRadius: labels.length > 60 ? 0 : 3,
+        },
+      ],
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { labels: { color: '#aaa', boxWidth: 12 } } },
+      scales: {
+        x: { ticks: { maxTicksLimit: 12, maxRotation: 0 } },
+        y: { ticks: { callback: v => '₽' + (v/1000).toFixed(0) + 'к' } },
+      },
+    },
+  });
+
+  makeChart('chart-units', {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [{
+        label: 'Штук',
+        data: units,
+        backgroundColor: 'rgba(255,102,0,.6)',
+        borderColor: '#ff6600',
+        borderWidth: 1,
+        borderRadius: 3,
+      }],
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { ticks: { maxTicksLimit: 12, maxRotation: 0 } },
+        y: { ticks: { stepSize: 1 } },
+      },
+    },
+  });
+}
+
+// ═══════════════ PRODUCTS ═══════════════
+async function loadProducts() {
+  try {
+    if (!state.data.products) {
+      state.data.products = await apiFetch('/api/profitability');
+    }
+    if (!state.data.abc) {
+      state.data.abc = await apiFetch('/api/abc');
+    }
+    renderProfitTable(state.data.products);
+    renderABC(state.data.abc);
+  } catch(e) { console.error('Products error', e); }
+}
+
+function renderProfitTable(rows) {
+  const search = (document.getElementById('product-search').value || '').toLowerCase();
+  const filtered = rows.filter(r => !search || r.name.toLowerCase().includes(search));
+  const tbody = document.getElementById('tbody-profit');
+  if (!filtered.length) { tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;color:var(--muted);padding:30px">Нет данных</td></tr>'; return; }
+  tbody.innerHTML = filtered.map(r => {
+    const roi = r.roi_pct;
+    const roiClass = roi == null ? '' : roi >= 30 ? 'roi-high' : roi >= 10 ? 'roi-mid' : 'roi-low';
+    const profitClass = (r.gross_profit || 0) >= 0 ? 'roi-high' : 'roi-low';
+    return `<tr>
+      <td>${r.name || '—'}</td>
+      <td><span class="badge badge-blue">${r.category || '—'}</span></td>
+      <td>${fmtRub(r.cost_price)}</td>
+      <td>${fmt(r.units_sold)}</td>
+      <td>${fmtRub(r.revenue)}</td>
+      <td style="color:var(--muted)">${fmtRub(r.commission)}</td>
+      <td style="color:var(--muted)">${fmtRub(r.logistics)}</td>
+      <td class="${profitClass}">${fmtRub(r.gross_profit)}</td>
+      <td class="${roiClass}">${roi != null ? roi + '%' : '—'}</td>
+    </tr>`;
+  }).join('');
+}
+
+function renderABC(rows) {
+  const counts = {A:0, B:0, C:0};
+  rows.forEach(r => counts[r.abc_class] = (counts[r.abc_class] || 0) + 1);
+  makeChart('chart-abc-pie', {
+    type: 'doughnut',
+    data: {
+      labels: ['A (топ 80%)', 'B (80–95%)', 'C (хвост)'],
+      datasets: [{
+        data: [counts.A, counts.B, counts.C],
+        backgroundColor: ['#00c853', '#ffb300', '#f44336'],
+        borderColor: '#1e1e1e',
+        borderWidth: 3,
+      }],
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      cutout: '60%',
+      plugins: {
+        legend: { position: 'bottom', labels: { color: '#aaa', padding: 12 } },
+      },
+    },
+  });
+
+  document.getElementById('tbody-abc').innerHTML = rows.map(r => {
+    const cls = r.abc_class === 'A' ? 'badge-green' : r.abc_class === 'B' ? 'badge-yellow' : 'badge-red';
+    return `<tr>
+      <td>${r.name}</td>
+      <td>${fmtRub(r.profit_30d)}</td>
+      <td>${r.cumulative_pct}%</td>
+      <td><span class="badge ${cls}">${r.abc_class}</span></td>
+    </tr>`;
+  }).join('');
+}
+
+function showProductView(v) {
+  state.productView = v;
+  document.getElementById('view-profit').style.display = v === 'profit' ? 'flex' : 'none';
+  document.getElementById('view-abc').style.display    = v === 'abc'    ? 'flex' : 'none';
+  document.querySelectorAll('#section-products .controls .btn').forEach((b, i) => {
+    b.classList.toggle('active', (i === 0 && v === 'profit') || (i === 1 && v === 'abc'));
+  });
+}
+
+function filterProducts() {
+  if (state.data.products) renderProfitTable(state.data.products);
+}
+
+// ═══════════════ STOCK ═══════════════
+async function loadStock() {
+  try {
+    state.data.stock = await apiFetch('/api/reorder');
+    renderStock();
+  } catch(e) { console.error('Stock error', e); }
+}
+
+function renderStock() {
+  const rows = state.data.stock || [];
+  const f = state.stockFilter;
+  const filtered = rows.filter(r => {
+    if (f === 'urgent')  return r.status === 'СРОЧНО';
+    if (f === 'reorder') return r.status === 'ДОКУПИТЬ';
+    if (f === 'ok')      return r.status === 'OK';
+    return true;
+  });
+  document.getElementById('stock-count').textContent =
+    `Показано: ${filtered.length} из ${rows.length}`;
+
+  document.getElementById('tbody-stock').innerHTML = filtered.map(r => {
+    const badge = r.status === 'СРОЧНО'   ? '<span class="badge badge-red">🔴 СРОЧНО</span>'
+                : r.status === 'ДОКУПИТЬ' ? '<span class="badge badge-orange">⚠️ ДОКУПИТЬ</span>'
+                :                           '<span class="badge badge-green">✅ OK</span>';
+    const daysColor = r.days_of_stock == null ? '' :
+                      r.days_of_stock < 7 ? 'style="color:var(--red);font-weight:700"' :
+                      r.days_of_stock < 14 ? 'style="color:var(--yellow);font-weight:600"' : '';
+    return `<tr>
+      <td>${r.name}</td>
+      <td style="font-family:monospace;font-size:12px;color:var(--muted)">${r.sku}</td>
+      <td><span class="badge ${r.source==='wb'?'badge-blue':'badge-yellow'}">${r.source.toUpperCase()}</span></td>
+      <td>${fmt(r.stock_qty)}</td>
+      <td>${r.avg_daily_sales != null ? Number(r.avg_daily_sales).toFixed(1) : '—'}</td>
+      <td ${daysColor}>${r.days_of_stock != null ? r.days_of_stock : '—'}</td>
+      <td>${badge}</td>
+    </tr>`;
+  }).join('') || '<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:30px">Нет данных</td></tr>';
+}
+
+// ═══════════════ CARDS ═══════════════
+async function loadCards() {
+  try {
+    state.data.cards = await apiFetch(`/api/cards?days=${state.cardsDays}`);
+    renderCards();
+  } catch(e) { console.error('Cards error', e); }
+}
+
+function renderCards() {
+  const rows = state.data.cards || [];
+  const search = (document.getElementById('card-search').value || '').toLowerCase();
+  const filtered = rows.filter(r => !search || (r.name||'').toLowerCase().includes(search));
+
+  // Charts - top 10 by views
+  const top10 = [...rows].sort((a,b) => (b.views||0)-(a.views||0)).slice(0,10);
+  makeChart('chart-ctr', {
+    type: 'bar',
+    data: {
+      labels: top10.map(r => truncate(r.name, 18)),
+      datasets: [{
+        data: top10.map(r => r.ctr_pct || 0),
+        backgroundColor: top10.map(r => {
+          const v = r.ctr_pct || 0;
+          return v >= 9 ? 'rgba(0,200,83,.7)' : v >= 6 ? 'rgba(255,179,0,.7)' : 'rgba(244,67,54,.7)';
+        }),
+        borderRadius: 4,
+      }],
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false, indexAxis: 'y',
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { ticks: { callback: v => v + '%' } },
+        y: { ticks: { font: { size: 11 } } },
+      },
+    },
+  });
+  makeChart('chart-cr', {
+    type: 'bar',
+    data: {
+      labels: top10.map(r => truncate(r.name, 18)),
+      datasets: [{
+        data: top10.map(r => r.cr_cart_pct || 0),
+        backgroundColor: 'rgba(255,102,0,.6)',
+        borderRadius: 4,
+      }],
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false, indexAxis: 'y',
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { ticks: { callback: v => v + '%' } },
+        y: { ticks: { font: { size: 11 } } },
+      },
+    },
+  });
+
+  // Table
+  document.getElementById('tbody-cards').innerHTML = filtered.map(r => {
+    const grade = r.ctr_grade === 'ОТЛИЧНО' ? '<span class="badge badge-green">ОТЛИЧНО</span>'
+                : r.ctr_grade === 'НОРМА'   ? '<span class="badge badge-yellow">НОРМА</span>'
+                :                             '<span class="badge badge-red">ПЛОХО</span>';
+    return `<tr>
+      <td>${r.name || '—'}</td>
+      <td><span class="badge ${r.source==='wb'?'badge-blue':'badge-yellow'}">${(r.source||'').toUpperCase()}</span></td>
+      <td>${r.stat_date ? r.stat_date.toString().slice(0,10) : '—'}</td>
+      <td>${fmt(r.views)}</td>
+      <td>${fmt(r.clicks)}</td>
+      <td>${fmtPct(r.ctr_pct)}</td>
+      <td>${fmt(r.add_to_cart)}</td>
+      <td>${fmtPct(r.cr_cart_pct)}</td>
+      <td>${grade}</td>
+    </tr>`;
+  }).join('') || '<tr><td colspan="9" style="text-align:center;color:var(--muted);padding:30px">Нет данных</td></tr>';
+}
+
+function filterCards() {
+  if (state.data.cards) renderCards();
+}
+
+// ═══════════════ PLATFORM ═══════════════
+async function loadPlatform() {
+  try {
+    const rows = await apiFetch('/api/platform');
+    renderPlatform(rows);
+  } catch(e) { console.error('Platform error', e); }
+}
+
+function renderPlatform(rows) {
+  const bySource = {};
+  rows.forEach(r => bySource[r.source] = r);
+
+  const container = document.getElementById('platform-compare');
+  container.innerHTML = ['wb','ozon'].map(src => {
+    const r = bySource[src] || {};
+    const name = src === 'wb' ? 'Wildberries' : 'Ozon';
+    return `
+    <div class="platform-card">
+      <div class="platform-name ${src}">${name}</div>
+      <div class="platform-stat"><span class="platform-stat-label">Выручка</span><span class="platform-stat-val">${fmtRub(r.revenue)}</span></div>
+      <div class="platform-stat"><span class="platform-stat-label">Чистая выручка</span><span class="platform-stat-val">${fmtRub(r.net_revenue)}</span></div>
+      <div class="platform-stat"><span class="platform-stat-label">Комиссия</span><span class="platform-stat-val" style="color:var(--red)">${fmtRub(r.commission)} (${fmtPct(r.commission_pct)})</span></div>
+      <div class="platform-stat"><span class="platform-stat-label">Логистика</span><span class="platform-stat-val" style="color:var(--yellow)">${fmtRub(r.logistics)} (${fmtPct(r.logistics_pct)})</span></div>
+      <div class="platform-stat"><span class="platform-stat-label">Продано штук</span><span class="platform-stat-val">${fmt(r.units)}</span></div>
+    </div>`;
+  }).join('');
+
+  // Charts
+  const labels = ['Выручка','Чистая выручка','Комиссия','Логистика'];
+  const wbData   = [bySource.wb?.revenue,   bySource.wb?.net_revenue,   bySource.wb?.commission,   bySource.wb?.logistics  ].map(v=>Number(v||0));
+  const ozonData = [bySource.ozon?.revenue, bySource.ozon?.net_revenue, bySource.ozon?.commission, bySource.ozon?.logistics].map(v=>Number(v||0));
+
+  makeChart('chart-platform-bar', {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [
+        { label:'WB',   data:wbData,   backgroundColor:'rgba(204,0,102,.7)', borderRadius:4 },
+        { label:'Ozon', data:ozonData, backgroundColor:'rgba(0,91,255,.7)',  borderRadius:4 },
+      ],
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { labels: { color:'#aaa' } } },
+      scales: { y: { ticks: { callback: v => '₽' + (v/1000).toFixed(0) + 'к' } } },
+    },
+  });
+
+  makeChart('chart-platform-pie', {
+    type: 'doughnut',
+    data: {
+      labels: ['WB', 'Ozon'],
+      datasets: [{
+        data: [bySource.wb?.revenue || 0, bySource.ozon?.revenue || 0],
+        backgroundColor: ['rgba(204,0,102,.8)', 'rgba(0,91,255,.8)'],
+        borderColor: '#1e1e1e',
+        borderWidth: 3,
+      }],
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      cutout: '55%',
+      plugins: { legend: { position: 'bottom', labels: { color:'#aaa', padding: 16 } } },
+    },
+  });
+}
+
+// ═══════════════ TABLE SORT ═══════════════
+function sortTable(tableId, colIdx) {
+  const key = tableId + '_' + colIdx;
+  const asc = state.sortState[key] !== true;
+  state.sortState[key] = asc;
+
+  const table = document.getElementById(tableId);
+  const ths = table.querySelectorAll('th');
+  ths.forEach((th,i) => {
+    th.classList.remove('sort-asc','sort-desc');
+    if (i === colIdx) th.classList.add(asc ? 'sort-asc' : 'sort-desc');
+  });
+
+  const tbody = table.querySelector('tbody');
+  const rows = Array.from(tbody.querySelectorAll('tr'));
+  rows.sort((a, b) => {
+    const aText = (a.cells[colIdx]?.textContent || '').trim();
+    const bText = (b.cells[colIdx]?.textContent || '').trim();
+    const aNum = parseFloat(aText.replace(/[₽\s%]/g,'').replace(',','.'));
+    const bNum = parseFloat(bText.replace(/[₽\s%]/g,'').replace(',','.'));
+    if (!isNaN(aNum) && !isNaN(bNum)) return asc ? aNum-bNum : bNum-aNum;
+    return asc ? aText.localeCompare(bText,'ru') : bText.localeCompare(aText,'ru');
+  });
+  rows.forEach(r => tbody.appendChild(r));
+}
+
+// ═══════════════ HELPERS ═══════════════
+function truncate(str, n) {
+  return str && str.length > n ? str.slice(0,n) + '…' : (str || '');
+}
+
+// ═══════════════ REFRESH ═══════════════
+async function refreshAll() {
+  state.data = { finance: null, products: null, abc: null, stock: null, cards: null, platform: null };
+  await loadKPIs();
+  loadSection(state.currentSection);
+  document.getElementById('last-update').textContent =
+    'Обновлено: ' + new Date().toLocaleTimeString('ru-RU', {hour:'2-digit',minute:'2-digit'});
+}
+
+// ═══════════════ INIT ═══════════════
+(async () => {
+  await loadKPIs();
+  loadFinance();
+  document.getElementById('last-update').textContent =
+    'Загружено: ' + new Date().toLocaleTimeString('ru-RU', {hour:'2-digit',minute:'2-digit'});
+  // Auto-refresh every 5 minutes
+  setInterval(refreshAll, 5 * 60 * 1000);
+})();
+</script>
+</body>
+</html>
