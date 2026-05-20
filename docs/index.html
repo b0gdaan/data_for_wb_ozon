@@ -1,1023 +1,2609 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ru">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MarketPulse · Аналитика</title>
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<meta charset="utf-8" />
+<title>МаркетЛупа — Analytics Dashboard</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet" />
 <style>
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-:root{
-  --bg:#0d0d0d;--bg2:#141414;--bg3:#1e1e1e;--bg4:#252525;
-  --border:#2a2a2a;--orange:#ff6600;--orange-dim:rgba(255,102,0,.12);
-  --orange-hover:rgba(255,102,0,.2);
-  --text:#f0f0f0;--muted:#888;--muted2:#555;
-  --green:#00c853;--red:#f44336;--yellow:#ffb300;
-  --sidebar:240px;
-}
-html,body{height:100%;overflow:hidden}
-body{background:var(--bg);color:var(--text);font-family:'Segoe UI',Arial,sans-serif;font-size:14px;display:flex}
+  html, body { margin: 0; height: 100%; background: #050505; color: #f3f1ee; font-family: 'Manrope', system-ui, sans-serif; }
+  #root { height: 100%; }
+  .dc-root { background: #050505 !important; }
+</style>
+<style>
+/* ─────────────────────────────────────────────────────────────
+   Marketplace Analytics — soft/rounded dark dashboard
+   ───────────────────────────────────────────────────────────── */
 
-/* ── SIDEBAR ── */
-#sidebar{
-  width:var(--sidebar);min-width:var(--sidebar);height:100vh;
-  background:var(--bg2);border-right:1px solid var(--border);
-  display:flex;flex-direction:column;overflow:hidden;
-}
-.logo{
-  padding:20px 16px 16px;border-bottom:1px solid var(--border);
-  display:flex;align-items:center;gap:10px;
-}
-.logo-icon{
-  width:38px;height:38px;background:var(--orange);border-radius:8px;
-  display:flex;align-items:center;justify-content:center;
-  font-size:18px;font-weight:900;color:#000;flex-shrink:0;
-}
-.logo-text{font-size:15px;font-weight:700;line-height:1.2}
-.logo-sub{font-size:11px;color:var(--muted);margin-top:2px}
+:root {
+  --bg:        #0b0b0c;
+  --surface-0: #111113;
+  --surface-1: #161618;
+  --surface-2: #1c1c1f;
+  --surface-3: #232327;
+  --border:    #26262b;
+  --border-soft: #1f1f23;
 
-nav{flex:1;padding:12px 0;overflow-y:auto}
-.nav-item{
-  display:flex;align-items:center;gap:10px;
-  padding:11px 16px;cursor:pointer;transition:background .15s;
-  border-left:3px solid transparent;color:var(--muted);
-  user-select:none;
-}
-.nav-item:hover{background:var(--orange-dim);color:var(--text)}
-.nav-item.active{
-  background:var(--orange-dim);color:var(--orange);
-  border-left-color:var(--orange);
-}
-.nav-icon{font-size:18px;width:22px;text-align:center;flex-shrink:0}
-.nav-label{font-size:13px;font-weight:500}
-.nav-badge{
-  margin-left:auto;background:var(--red);color:#fff;
-  font-size:11px;font-weight:700;padding:2px 6px;border-radius:10px;
+  --orange:    #ff6a1a;
+  --orange-hi: #ff8a3d;
+  --orange-lo: #c64c00;
+  --orange-dim: rgba(255, 106, 26, 0.10);
+  --orange-glow: rgba(255, 106, 26, 0.22);
+
+  --text:        #f3f1ee;
+  --text-mute:   #8d8d93;
+  --text-faint:  #5a5a60;
+
+  --green:  #28d17c;
+  --green-bg: rgba(40, 209, 124, 0.13);
+  --red:    #ff5b5b;
+  --red-bg: rgba(255, 91, 91, 0.13);
+  --yellow: #ffb648;
+  --yellow-bg: rgba(255, 182, 72, 0.13);
+  --blue:   #5aa9ff;
+  --pink:   #ff3d8b;
+
+  /* radii — generous, rounded */
+  --r-xs: 10px;
+  --r-sm: 14px;
+  --r-md: 18px;
+  --r-lg: 22px;
+  --r-xl: 28px;
+  --r-pill: 999px;
+
+  --shadow-card: 0 1px 0 rgba(255,255,255,0.04) inset,
+                 0 24px 60px -28px rgba(0,0,0,0.6);
+  --shadow-glow: 0 1px 0 rgba(255,255,255,0.05) inset,
+                 0 0 0 1px rgba(255,106,26,0.18),
+                 0 20px 50px -22px rgba(255,106,26,0.18);
+
+  --font-sans: 'Manrope', 'Inter', 'Segoe UI', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
 }
 
-.sidebar-footer{
-  padding:12px 16px;border-top:1px solid var(--border);
-  font-size:11px;color:var(--muted);
+/* layout root inside an artboard */
+.app {
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(1200px 600px at 20% -10%, rgba(255,106,26,0.05), transparent 60%),
+              radial-gradient(900px 500px at 110% 0%, rgba(90,169,255,0.03), transparent 60%),
+              var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-size: 13px;
+  display: grid;
+  grid-template-columns: 248px 1fr;
+  letter-spacing: -0.005em;
+  overflow: hidden;
 }
-#last-update{color:var(--muted2);font-size:11px;margin-top:3px}
 
-/* ── MAIN ── */
-#main{flex:1;height:100vh;overflow-y:auto;display:flex;flex-direction:column}
+/* ─── sidebar ─── */
+.sidebar {
+  background: linear-gradient(180deg, #131316 0%, #0e0e10 100%);
+  border-right: 1px solid var(--border-soft);
+  padding: 22px 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 6px 8px 14px;
+}
+.brand-mark {
+  width: 42px; height: 42px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #ff8a3d 0%, #ff5a00 100%);
+  display: grid; place-items: center;
+  color: #1a0d04;
+  font-weight: 800;
+  font-size: 19px;
+  letter-spacing: -0.04em;
+  box-shadow: 0 1px 0 rgba(255,255,255,0.25) inset,
+              0 6px 18px -6px rgba(255,106,26,0.6);
+  position: relative;
+}
+.brand-mark::after {
+  content: '';
+  position: absolute; inset: 1px;
+  border-radius: 13px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.18), transparent 40%);
+  pointer-events: none;
+}
+.brand-title {
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+.brand-sub {
+  font-size: 11px;
+  color: var(--text-faint);
+  margin-top: 1px;
+}
 
-/* ── TOP BAR ── */
-#topbar{
-  background:var(--bg2);border-bottom:1px solid var(--border);
-  padding:14px 24px;display:flex;align-items:center;gap:16px;flex-shrink:0;
+.nav-group-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--text-faint);
+  padding: 8px 12px 6px;
 }
-#page-title{font-size:18px;font-weight:700;flex:1}
-.btn{
-  padding:7px 16px;border-radius:6px;border:1px solid var(--border);
-  background:var(--bg3);color:var(--text);cursor:pointer;
-  font-size:13px;transition:all .15s;
+.nav {
+  display: flex; flex-direction: column;
+  gap: 2px;
 }
-.btn:hover{border-color:var(--orange);color:var(--orange)}
-.btn.active{background:var(--orange);border-color:var(--orange);color:#000;font-weight:600}
+.nav-item {
+  display: flex; align-items: center; gap: 11px;
+  padding: 9px 12px 9px 14px;
+  border-radius: var(--r-sm);
+  color: var(--text-mute);
+  font-weight: 500;
+  font-size: 13px;
+  position: relative;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+.nav-item:hover {
+  background: rgba(255,255,255,0.03);
+  color: var(--text);
+}
+.nav-item.active {
+  background: var(--orange-dim);
+  color: var(--orange-hi);
+}
+.nav-item.active::before {
+  content: '';
+  position: absolute;
+  left: 4px; top: 9px; bottom: 9px;
+  width: 3px;
+  border-radius: 2px;
+  background: var(--orange);
+  box-shadow: 0 0 12px rgba(255,106,26,0.6);
+}
+.nav-ico {
+  width: 22px; height: 22px;
+  border-radius: 8px;
+  background: var(--surface-2);
+  display: grid; place-items: center;
+  flex: none;
+  color: var(--text-mute);
+}
+.nav-item.active .nav-ico {
+  background: rgba(255,106,26,0.18);
+  color: var(--orange-hi);
+}
+.nav-badge {
+  margin-left: auto;
+  font-size: 10px;
+  font-weight: 700;
+  background: var(--red-bg);
+  color: var(--red);
+  padding: 2px 7px;
+  border-radius: var(--r-pill);
+  font-family: var(--font-mono);
+}
 
-/* ── KPI ROW ── */
-#kpi-row{
-  display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));
-  gap:12px;padding:20px 24px 0;flex-shrink:0;
+.sidebar-divider {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--border-soft), transparent);
+  margin: 4px 8px;
 }
-.kpi-card{
-  background:var(--bg3);border:1px solid var(--border);border-radius:10px;
-  padding:16px;transition:border-color .2s;
-}
-.kpi-card:hover{border-color:var(--orange)}
-.kpi-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
-.kpi-value{font-size:24px;font-weight:800;line-height:1}
-.kpi-value.orange{color:var(--orange)}
-.kpi-value.green{color:var(--green)}
-.kpi-value.red{color:var(--red)}
-.kpi-value.yellow{color:var(--yellow)}
-.kpi-sub{font-size:11px;color:var(--muted);margin-top:4px}
 
-/* ── CONTENT ── */
-#content{flex:1;padding:20px 24px 24px;overflow:hidden}
-.section{display:none;height:100%}
-.section.active{display:flex;flex-direction:column;gap:16px}
-
-/* ── CONTROLS ROW ── */
-.controls{display:flex;align-items:center;gap:8px;flex-wrap:wrap;flex-shrink:0}
-.controls-label{font-size:12px;color:var(--muted);margin-right:4px}
-.btn-group{display:flex;gap:4px}
-
-/* ── GRID CARDS ── */
-.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px;flex:1;min-height:0}
-.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;flex:1;min-height:0}
-.card{
-  background:var(--bg3);border:1px solid var(--border);border-radius:10px;
-  padding:18px;display:flex;flex-direction:column;min-height:0;
+.side-footer {
+  margin-top: auto;
+  border-radius: var(--r-md);
+  background: rgba(255,255,255,0.02);
+  border: 1px solid var(--border-soft);
+  padding: 12px 14px;
+  display: flex; flex-direction: column; gap: 8px;
 }
-.card-title{
-  font-size:13px;font-weight:600;color:var(--muted);
-  text-transform:uppercase;letter-spacing:.5px;margin-bottom:14px;flex-shrink:0;
+.sync-status {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 11px;
+  color: var(--text-mute);
 }
-.chart-wrap{flex:1;position:relative;min-height:0}
-.chart-wrap canvas{max-height:100%!important}
+.sync-dot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: var(--green);
+  box-shadow: 0 0 0 4px rgba(40,209,124,0.15);
+  animation: pulse 2.2s infinite;
+}
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.55; }
+}
+.sync-time {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text);
+}
+.sync-row {
+  display: flex; justify-content: space-between; align-items: baseline;
+}
+.sync-btn {
+  font-size: 11px;
+  color: var(--orange-hi);
+  display: flex; align-items: center; gap: 5px;
+  cursor: pointer;
+}
 
-/* ── TABLE ── */
-.table-wrap{flex:1;overflow-y:auto;min-height:0;border-radius:8px}
-table{width:100%;border-collapse:collapse}
-thead{position:sticky;top:0;z-index:1}
-th{
-  background:var(--bg4);padding:10px 12px;text-align:left;
-  font-size:11px;font-weight:600;color:var(--muted);
-  text-transform:uppercase;letter-spacing:.4px;white-space:nowrap;
-  cursor:pointer;user-select:none;border-bottom:1px solid var(--border);
+/* ─── main area ─── */
+.main {
+  display: flex; flex-direction: column;
+  min-width: 0;
+  overflow: hidden;
 }
-th:hover{color:var(--orange)}
-th.sort-asc::after{content:" ↑"}
-th.sort-desc::after{content:" ↓"}
-td{
-  padding:9px 12px;border-bottom:1px solid var(--border);
-  font-size:13px;white-space:nowrap;
+.topbar {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 18px 28px;
+  border-bottom: 1px solid var(--border-soft);
+  background: rgba(11,11,12,0.6);
+  backdrop-filter: blur(8px);
 }
-tr:hover td{background:var(--orange-hover)}
+.topbar-left { display: flex; align-items: baseline; gap: 14px; }
+.page-title {
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+.crumb {
+  font-size: 12px;
+  color: var(--text-faint);
+}
+.crumb b { color: var(--text-mute); font-weight: 500; }
 
-/* ── BADGES ── */
-.badge{
-  display:inline-flex;align-items:center;
-  padding:3px 9px;border-radius:12px;font-size:11px;font-weight:700;
-}
-.badge-red{background:rgba(244,67,54,.2);color:#f44336}
-.badge-orange{background:rgba(255,102,0,.2);color:#ff6600}
-.badge-green{background:rgba(0,200,83,.2);color:#00c853}
-.badge-blue{background:rgba(33,150,243,.2);color:#42a5f5}
-.badge-yellow{background:rgba(255,179,0,.2);color:#ffb300}
+.topbar-right { display: flex; align-items: center; gap: 10px; }
 
-/* ── PLATFORM COMPARE ── */
-.platform-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;flex-shrink:0}
-.platform-card{
-  background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:20px;
+.period {
+  display: inline-flex;
+  background: var(--surface-1);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--r-pill);
+  padding: 4px;
+  gap: 2px;
 }
-.platform-name{font-size:20px;font-weight:800;margin-bottom:14px}
-.platform-name.wb{color:#cc0066}
-.platform-name.ozon{color:#005bff}
-.platform-stat{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)}
-.platform-stat:last-child{border:none}
-.platform-stat-label{color:var(--muted);font-size:13px}
-.platform-stat-val{font-weight:600;font-size:13px}
-
-/* ── LOADER ── */
-.loader{
-  display:flex;align-items:center;justify-content:center;
-  height:200px;color:var(--muted);font-size:13px;
+.period button {
+  border: 0; background: transparent;
+  color: var(--text-mute);
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 7px 14px;
+  border-radius: var(--r-pill);
+  cursor: pointer;
+  transition: all 0.15s;
+  letter-spacing: -0.01em;
 }
-.loader::before{
-  content:"";width:20px;height:20px;border:2px solid var(--border);
-  border-top-color:var(--orange);border-radius:50%;
-  animation:spin .7s linear infinite;margin-right:10px;
+.period button:hover { color: var(--text); }
+.period button.active {
+  background: linear-gradient(180deg, var(--orange-hi), var(--orange));
+  color: #1a0d04;
+  box-shadow: 0 4px 14px -4px rgba(255,106,26,0.5),
+              0 1px 0 rgba(255,255,255,0.25) inset;
 }
-@keyframes spin{to{transform:rotate(360deg)}}
 
-/* ── ROI COLORS ── */
-.roi-high{color:var(--green)}
-.roi-mid{color:var(--yellow)}
-.roi-low{color:var(--red)}
-
-/* ── SCROLLBAR ── */
-::-webkit-scrollbar{width:6px;height:6px}
-::-webkit-scrollbar-track{background:var(--bg2)}
-::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
-::-webkit-scrollbar-thumb:hover{background:var(--orange)}
-
-/* ── RESPONSIVE ── */
-@media(max-width:900px){
-  :root{--sidebar:52px}
-  .nav-label,.logo-text,.logo-sub,.sidebar-footer{display:none}
-  .logo{padding:14px 0;justify-content:center}
-  .nav-item{justify-content:center;padding:14px 0}
-  .nav-badge{display:none}
-  .grid-2,.grid-3{grid-template-columns:1fr}
-  #kpi-row{grid-template-columns:repeat(2,1fr)}
+.btn {
+  display: inline-flex; align-items: center; gap: 7px;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 9px 14px;
+  border-radius: var(--r-pill);
+  cursor: pointer;
+  transition: all 0.15s;
+  border: 1px solid var(--border);
+  background: var(--surface-1);
+  color: var(--text);
+  letter-spacing: -0.01em;
 }
+.btn:hover { background: var(--surface-2); border-color: #34343a; }
+.btn:active { transform: scale(0.97); }
+.btn.ghost { background: transparent; }
+.btn.orange-out {
+  border-color: rgba(255,106,26,0.5);
+  color: var(--orange-hi);
+  background: rgba(255,106,26,0.07);
+}
+.btn.orange-out:hover { background: var(--orange-dim); }
+.btn.solid {
+  background: linear-gradient(180deg, var(--orange-hi), var(--orange));
+  color: #1a0d04;
+  border-color: transparent;
+  box-shadow: 0 4px 14px -4px rgba(255,106,26,0.5),
+              0 1px 0 rgba(255,255,255,0.25) inset;
+}
+
+.spin { animation: spin 2s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ─── content scroll ─── */
+.content {
+  padding: 24px 28px 28px;
+  overflow: auto;
+  display: flex; flex-direction: column;
+  gap: 22px;
+}
+
+/* ─── KPI cards ─── */
+.kpi-row {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 14px;
+}
+.kpi {
+  position: relative;
+  background: linear-gradient(180deg, #19191c 0%, #141417 100%);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--r-lg);
+  padding: 18px 18px 16px;
+  overflow: hidden;
+  transition: border-color 0.2s, transform 0.2s;
+  box-shadow: var(--shadow-card);
+}
+.kpi:hover {
+  border-color: rgba(255,106,26,0.3);
+  box-shadow: var(--shadow-glow);
+}
+.kpi::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 14px; bottom: 14px;
+  width: 3px;
+  border-radius: 0 3px 3px 0;
+  background: var(--orange);
+  opacity: 0.85;
+}
+.kpi.green::before { background: var(--green); }
+.kpi.red::before { background: var(--red); }
+.kpi.blue::before { background: var(--blue); }
+.kpi.violet::before { background: #b07cff; }
+.kpi.gray::before  { background: #4a4a52; }
+
+.kpi-head {
+  display: flex; justify-content: space-between; align-items: flex-start;
+  margin-bottom: 8px;
+}
+.kpi-label {
+  font-size: 10.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-mute);
+  font-weight: 600;
+}
+.kpi-ico {
+  width: 26px; height: 26px;
+  border-radius: 9px;
+  background: rgba(255,255,255,0.03);
+  display: grid; place-items: center;
+  color: var(--text-faint);
+}
+.kpi-value {
+  font-size: 26px;
+  font-weight: 800;
+  letter-spacing: -0.025em;
+  font-family: var(--font-sans);
+  display: flex; align-items: baseline; gap: 5px;
+}
+.kpi-value .unit {
+  font-size: 14px;
+  color: var(--text-mute);
+  font-weight: 600;
+}
+.kpi-foot {
+  margin-top: 10px;
+  display: flex; align-items: center; gap: 8px;
+}
+.delta {
+  display: inline-flex; align-items: center; gap: 3px;
+  font-size: 11px;
+  font-weight: 700;
+  font-family: var(--font-mono);
+  padding: 3px 8px 3px 6px;
+  border-radius: var(--r-pill);
+  letter-spacing: -0.01em;
+}
+.delta.up   { background: var(--green-bg); color: var(--green); }
+.delta.down { background: var(--red-bg);   color: var(--red); }
+.delta.flat { background: rgba(255,255,255,0.04); color: var(--text-mute); }
+.delta svg { display: block; }
+
+.kpi-trend {
+  flex: 1;
+  height: 22px;
+}
+.kpi-sub {
+  font-size: 11px;
+  color: var(--text-faint);
+  white-space: nowrap;
+}
+
+/* ─── panels ─── */
+.panel {
+  background: linear-gradient(180deg, #18181b 0%, #131316 100%);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--r-xl);
+  padding: 20px 22px;
+  box-shadow: var(--shadow-card);
+  position: relative;
+  overflow: hidden;
+}
+.panel-head {
+  display: flex; justify-content: space-between; align-items: flex-start;
+  margin-bottom: 18px;
+}
+.panel-title {
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+}
+.panel-sub {
+  font-size: 11.5px;
+  color: var(--text-mute);
+  margin-top: 3px;
+}
+.legend {
+  display: flex; align-items: center; gap: 14px;
+  font-size: 11.5px;
+  color: var(--text-mute);
+}
+.legend-item { display: flex; align-items: center; gap: 6px; }
+.legend-dot { width: 8px; height: 8px; border-radius: 50%; }
+
+/* ─── tables ─── */
+.tbl {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 12.5px;
+}
+.tbl thead th {
+  font-size: 10.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-mute);
+  font-weight: 600;
+  padding: 11px 14px;
+  text-align: left;
+  background: var(--surface-2);
+  border-top: 1px solid var(--border-soft);
+  border-bottom: 1px solid var(--border-soft);
+  position: sticky;
+  top: 0;
+}
+.tbl thead th:first-child { border-top-left-radius: 14px; border-bottom-left-radius: 14px; }
+.tbl thead th:last-child  { border-top-right-radius: 14px; border-bottom-right-radius: 14px; }
+.tbl tbody td {
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--border-soft);
+  color: var(--text);
+  vertical-align: middle;
+}
+.tbl tbody tr:nth-child(even) td { background: rgba(255,255,255,0.012); }
+.tbl tbody tr:hover td { background: var(--orange-dim); }
+.tbl tbody tr:last-child td { border-bottom: 0; }
+.tbl .num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; letter-spacing: -0.02em; }
+.tbl .right { text-align: right; }
+.sort-arr { color: var(--orange); margin-left: 4px; }
+
+.badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  padding: 4px 10px;
+  border-radius: var(--r-pill);
+  text-transform: uppercase;
+}
+.badge.red    { background: var(--red-bg);    color: var(--red); }
+.badge.orange { background: var(--orange-dim); color: var(--orange-hi); }
+.badge.green  { background: var(--green-bg);  color: var(--green); }
+.badge.yellow { background: var(--yellow-bg); color: var(--yellow); }
+
+.platform-chip {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 11.5px;
+  font-weight: 600;
+  padding: 3px 9px 3px 4px;
+  border-radius: var(--r-pill);
+  background: rgba(255,255,255,0.03);
+  border: 1px solid var(--border-soft);
+}
+.platform-chip .swatch {
+  width: 16px; height: 16px;
+  border-radius: 5px;
+  display: grid; place-items: center;
+  font-size: 9px;
+  font-weight: 800;
+  color: white;
+}
+.platform-chip.wb   .swatch { background: linear-gradient(135deg, #ff3d8b, #cc0066); }
+.platform-chip.ozon .swatch { background: linear-gradient(135deg, #5aa9ff, #1f6fd1); }
+
+.product-cell { display: flex; align-items: center; gap: 11px; }
+.product-thumb {
+  width: 36px; height: 36px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #2a2a30 0%, #1a1a1e 100%);
+  border: 1px solid var(--border-soft);
+  display: grid; place-items: center;
+  font-size: 13px;
+  flex: none;
+  position: relative;
+  overflow: hidden;
+}
+.product-thumb::after {
+  content: '';
+  position: absolute; inset: 0;
+  background: repeating-linear-gradient(135deg,
+    rgba(255,255,255,0.025) 0 6px,
+    transparent 6px 12px);
+}
+.product-sub {
+  font-size: 10.5px;
+  color: var(--text-faint);
+  margin-top: 1px;
+  font-family: var(--font-mono);
+}
+
+.bar-inline {
+  width: 84px; height: 6px;
+  border-radius: var(--r-pill);
+  background: rgba(255,255,255,0.05);
+  overflow: hidden;
+}
+.bar-inline > span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+}
+
+/* ─── grids ─── */
+.grid-2 { display: grid; grid-template-columns: 1.4fr 1fr; gap: 18px; }
+.grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+.grid-charts { display: grid; grid-template-columns: 1.55fr 1fr; gap: 18px; }
+
+.stat-pill {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: var(--surface-2);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--r-pill);
+  padding: 6px 12px 6px 8px;
+  font-size: 11.5px;
+}
+.stat-pill .k { color: var(--text-mute); }
+.stat-pill .v { font-family: var(--font-mono); font-weight: 700; }
+
+/* funnel */
+.funnel-wrap {
+  display: flex; align-items: stretch;
+  gap: 8px;
+  height: 280px;
+  padding: 8px 4px;
+}
+.funnel-step {
+  flex: 1;
+  border-radius: var(--r-lg);
+  padding: 18px 18px 16px;
+  display: flex; flex-direction: column; justify-content: space-between;
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--border-soft);
+  transition: transform 0.2s;
+}
+.funnel-step:hover { transform: translateY(-2px); }
+.funnel-step::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(180deg, var(--c) 0%, transparent 100%);
+  opacity: 0.18;
+  pointer-events: none;
+}
+.funnel-step::after {
+  content: '';
+  position: absolute;
+  top: 50%; right: -14px;
+  width: 24px; height: 24px;
+  background: var(--surface-2);
+  border-top: 1px solid var(--border-soft);
+  border-right: 1px solid var(--border-soft);
+  transform: translateY(-50%) rotate(45deg);
+  z-index: 2;
+  border-top-right-radius: 6px;
+}
+.funnel-step:last-child::after { display: none; }
+
+.funnel-step .step-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-mute);
+  font-weight: 600;
+  position: relative; z-index: 1;
+}
+.funnel-step .step-value {
+  font-size: 32px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  margin-top: 4px;
+  position: relative; z-index: 1;
+}
+.funnel-step .step-conv {
+  display: flex; align-items: center; gap: 8px;
+  position: relative; z-index: 1;
+  margin-top: 8px;
+}
+.funnel-step .conv-pill {
+  font-size: 11px;
+  font-weight: 700;
+  font-family: var(--font-mono);
+  background: rgba(255,255,255,0.06);
+  padding: 3px 9px;
+  border-radius: var(--r-pill);
+  color: var(--text);
+}
+.funnel-step .conv-from {
+  font-size: 11px;
+  color: var(--text-mute);
+}
+
+/* tiny chips inside cards */
+.chip-row { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+.mini-chip {
+  font-size: 10.5px;
+  color: var(--text-mute);
+  background: rgba(255,255,255,0.03);
+  padding: 3px 8px;
+  border-radius: var(--r-pill);
+  font-weight: 500;
+}
+
+/* small donut placeholder dot for share */
+.share-bar { display: flex; height: 8px; border-radius: var(--r-pill); overflow: hidden; background: var(--surface-3); }
+.share-bar > span { display: block; height: 100%; }
+
+/* breakdown rows */
+.brk-row { display: flex; align-items: center; gap: 10px; padding: 9px 0; border-bottom: 1px solid var(--border-soft); }
+.brk-row:last-child { border-bottom: 0; }
+.brk-name { flex: 1; font-size: 12.5px; }
+.brk-bar { width: 130px; height: 6px; border-radius: var(--r-pill); background: rgba(255,255,255,0.05); overflow: hidden; }
+.brk-bar > span { display: block; height: 100%; border-radius: inherit; }
+.brk-val { font-family: var(--font-mono); font-size: 12px; font-weight: 700; width: 78px; text-align: right; }
+
+/* scrollbar */
+.content::-webkit-scrollbar { width: 8px; height: 8px; }
+.content::-webkit-scrollbar-thumb { background: #28282d; border-radius: 999px; }
+.content::-webkit-scrollbar-track { background: transparent; }
+
+/* utility */
+.muted { color: var(--text-mute); }
+.faint { color: var(--text-faint); }
+.green-t { color: var(--green); }
+.red-t   { color: var(--red); }
+.orange-t { color: var(--orange-hi); }
+.mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+.row { display: flex; align-items: center; gap: 8px; }
+
 </style>
 </head>
 <body>
+<div id="root"></div>
 
-<!-- ═══════════════ SIDEBAR ═══════════════ -->
-<div id="sidebar">
-  <div class="logo">
-    <div class="logo-icon">M</div>
-    <div>
-      <div class="logo-text">MarketPulse</div>
-      <div class="logo-sub">Аналитика</div>
-    </div>
-  </div>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
 
-  <nav>
-    <div class="nav-item active" data-section="finance">
-      <span class="nav-icon">💰</span>
-      <span class="nav-label">Финансы</span>
-    </div>
-    <div class="nav-item" data-section="products">
-      <span class="nav-icon">📊</span>
-      <span class="nav-label">Товары</span>
-    </div>
-    <div class="nav-item" data-section="stock">
-      <span class="nav-icon">📦</span>
-      <span class="nav-label">Склад</span>
-      <span class="nav-badge" id="badge-urgent">0</span>
-    </div>
-    <div class="nav-item" data-section="cards">
-      <span class="nav-icon">🎨</span>
-      <span class="nav-label">Карточки</span>
-    </div>
-    <div class="nav-item" data-section="platform">
-      <span class="nav-icon">⚖️</span>
-      <span class="nav-label">WB vs Ozon</span>
-    </div>
-  </nav>
+<script type="text/babel" data-presets="react">
+/* === design-canvas === */
 
-  <div class="sidebar-footer">
-    <div>Авто-обновление: 5 мин</div>
-    <div id="last-update">—</div>
-  </div>
-</div>
+// DesignCanvas.jsx — Figma-ish design canvas wrapper
+// Warm gray grid bg + Sections + Artboards + PostIt notes.
+// Artboards are reorderable (grip-drag), deletable, labels/titles are
+// inline-editable, and any artboard can be opened in a fullscreen focus
+// overlay (←/→/Esc). State persists to a .design-canvas.state.json sidecar
+// via the host bridge. No assets, no deps.
+//
+// Usage:
+//   <DesignCanvas>
+//     <DCSection id="onboarding" title="Onboarding" subtitle="First-run variants">
+//       <DCArtboard id="a" label="A · Dusk" width={260} height={480}>…</DCArtboard>
+//       <DCArtboard id="b" label="B · Minimal" width={260} height={480}>…</DCArtboard>
+//     </DCSection>
+//   </DesignCanvas>
 
-<!-- ═══════════════ MAIN ═══════════════ -->
-<div id="main">
-
-  <!-- TOP BAR -->
-  <div id="topbar">
-    <div id="page-title">Финансы</div>
-    <button class="btn" onclick="refreshAll()">↻ Обновить</button>
-  </div>
-
-  <!-- KPI ROW -->
-  <div id="kpi-row">
-    <div class="kpi-card">
-      <div class="kpi-label">Выручка / 30 дней</div>
-      <div class="kpi-value orange" id="kpi-revenue">—</div>
-      <div class="kpi-sub">WB + Ozon</div>
-    </div>
-    <div class="kpi-card">
-      <div class="kpi-label">Прибыль / 30 дней</div>
-      <div class="kpi-value green" id="kpi-profit">—</div>
-      <div class="kpi-sub" id="kpi-margin-sub">маржа —%</div>
-    </div>
-    <div class="kpi-card">
-      <div class="kpi-label">Продано / 30 дней</div>
-      <div class="kpi-value" id="kpi-units">—</div>
-      <div class="kpi-sub">штук</div>
-    </div>
-    <div class="kpi-card">
-      <div class="kpi-label">Срочно докупить</div>
-      <div class="kpi-value red" id="kpi-urgent">—</div>
-      <div class="kpi-sub" id="kpi-reorder-sub">позиций</div>
-    </div>
-    <div class="kpi-card">
-      <div class="kpi-label">Всего SKU</div>
-      <div class="kpi-value" id="kpi-skus">—</div>
-      <div class="kpi-sub">товаров в БД</div>
-    </div>
-  </div>
-
-  <!-- ══ CONTENT ══ -->
-  <div id="content">
-
-    <!-- ── ФИНАНСЫ ── -->
-    <div class="section active" id="section-finance">
-      <div class="controls">
-        <span class="controls-label">Период:</span>
-        <div class="btn-group" id="period-btns">
-          <button class="btn" data-period="7">7 дней</button>
-          <button class="btn active" data-period="30">30 дней</button>
-          <button class="btn" data-period="90">90 дней</button>
-          <button class="btn" data-period="weekly">Недели</button>
-          <button class="btn" data-period="monthly">Месяцы</button>
-          <button class="btn" data-period="quarterly">Кварталы</button>
-        </div>
-        <span class="controls-label" style="margin-left:12px">Площадка:</span>
-        <div class="btn-group" id="source-btns">
-          <button class="btn active" data-source="all">Все</button>
-          <button class="btn" data-source="wb">WB</button>
-          <button class="btn" data-source="ozon">Ozon</button>
-        </div>
-      </div>
-
-      <div class="grid-2" style="flex:1;min-height:0">
-        <div class="card">
-          <div class="card-title">Выручка и прибыль</div>
-          <div class="chart-wrap"><canvas id="chart-revenue"></canvas></div>
-        </div>
-        <div class="card">
-          <div class="card-title">Продажи (штук)</div>
-          <div class="chart-wrap"><canvas id="chart-units"></canvas></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ── ТОВАРЫ ── -->
-    <div class="section" id="section-products">
-      <div class="controls">
-        <span class="controls-label">Вид:</span>
-        <div class="btn-group">
-          <button class="btn active" onclick="showProductView('profit')">Рентабельность</button>
-          <button class="btn" onclick="showProductView('abc')">ABC-анализ</button>
-        </div>
-        <input type="text" id="product-search"
-          placeholder="Поиск товара..."
-          style="margin-left:auto;padding:7px 12px;background:var(--bg3);border:1px solid var(--border);
-                 color:var(--text);border-radius:6px;font-size:13px;width:220px"
-          oninput="filterProducts()">
-      </div>
-
-      <div id="view-profit" style="flex:1;min-height:0;display:flex;flex-direction:column">
-        <div class="table-wrap">
-          <table id="table-profit">
-            <thead>
-              <tr>
-                <th onclick="sortTable('table-profit',0)">Товар</th>
-                <th onclick="sortTable('table-profit',1)">Категория</th>
-                <th onclick="sortTable('table-profit',2)">Себест.</th>
-                <th onclick="sortTable('table-profit',3)">Продано</th>
-                <th onclick="sortTable('table-profit',4)">Выручка</th>
-                <th onclick="sortTable('table-profit',5)">Комиссия</th>
-                <th onclick="sortTable('table-profit',6)">Логистика</th>
-                <th onclick="sortTable('table-profit',7)">Прибыль</th>
-                <th onclick="sortTable('table-profit',8)">ROI %</th>
-              </tr>
-            </thead>
-            <tbody id="tbody-profit"><tr><td colspan="9" class="loader"></td></tr></tbody>
-          </table>
-        </div>
-      </div>
-
-      <div id="view-abc" style="flex:1;min-height:0;display:none;flex-direction:column">
-        <div class="grid-2" style="flex:1;min-height:0">
-          <div class="card">
-            <div class="card-title">Распределение ABC</div>
-            <div class="chart-wrap"><canvas id="chart-abc-pie"></canvas></div>
-          </div>
-          <div class="card" style="padding:0;overflow:hidden">
-            <div class="table-wrap" style="height:100%">
-              <table id="table-abc">
-                <thead><tr>
-                  <th>Товар</th>
-                  <th onclick="sortTable('table-abc',1)">Прибыль 30д</th>
-                  <th onclick="sortTable('table-abc',2)">Нараст. %</th>
-                  <th>Класс</th>
-                </tr></thead>
-                <tbody id="tbody-abc"><tr><td colspan="4" class="loader"></td></tr></tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ── СКЛАД ── -->
-    <div class="section" id="section-stock">
-      <div class="controls">
-        <span class="controls-label">Фильтр:</span>
-        <div class="btn-group" id="stock-filter-btns">
-          <button class="btn active" data-filter="all">Все</button>
-          <button class="btn" data-filter="urgent">🔴 Срочно</button>
-          <button class="btn" data-filter="reorder">⚠️ Докупить</button>
-          <button class="btn" data-filter="ok">✅ Норма</button>
-        </div>
-        <span id="stock-count" style="margin-left:auto;color:var(--muted);font-size:13px"></span>
-      </div>
-
-      <div style="flex:1;min-height:0;display:flex;flex-direction:column">
-        <div class="table-wrap">
-          <table id="table-stock">
-            <thead><tr>
-              <th onclick="sortTable('table-stock',0)">Товар</th>
-              <th onclick="sortTable('table-stock',1)">SKU</th>
-              <th>Площадка</th>
-              <th onclick="sortTable('table-stock',3)">Остаток</th>
-              <th onclick="sortTable('table-stock',4)">Продаж/день</th>
-              <th onclick="sortTable('table-stock',5)">Запас (дней)</th>
-              <th>Статус</th>
-            </tr></thead>
-            <tbody id="tbody-stock"><tr><td colspan="7" class="loader"></td></tr></tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-
-    <!-- ── КАРТОЧКИ ── -->
-    <div class="section" id="section-cards">
-      <div class="controls">
-        <span class="controls-label">Период:</span>
-        <div class="btn-group" id="cards-period-btns">
-          <button class="btn active" data-days="7">7 дней</button>
-          <button class="btn" data-days="14">14 дней</button>
-          <button class="btn" data-days="30">30 дней</button>
-        </div>
-        <input type="text" id="card-search"
-          placeholder="Поиск..."
-          style="margin-left:auto;padding:7px 12px;background:var(--bg3);border:1px solid var(--border);
-                 color:var(--text);border-radius:6px;font-size:13px;width:200px"
-          oninput="filterCards()">
-      </div>
-
-      <div class="grid-2" style="height:220px;flex-shrink:0">
-        <div class="card">
-          <div class="card-title">CTR топ-10 карточек (%)</div>
-          <div class="chart-wrap"><canvas id="chart-ctr"></canvas></div>
-        </div>
-        <div class="card">
-          <div class="card-title">Конверсия в корзину топ-10 (%)</div>
-          <div class="chart-wrap"><canvas id="chart-cr"></canvas></div>
-        </div>
-      </div>
-
-      <div style="flex:1;min-height:0;display:flex;flex-direction:column">
-        <div class="table-wrap">
-          <table id="table-cards">
-            <thead><tr>
-              <th>Товар</th>
-              <th>Площадка</th>
-              <th>Дата</th>
-              <th onclick="sortTable('table-cards',3)">Показы</th>
-              <th onclick="sortTable('table-cards',4)">Клики</th>
-              <th onclick="sortTable('table-cards',5)">CTR %</th>
-              <th onclick="sortTable('table-cards',6)">В корзину</th>
-              <th onclick="sortTable('table-cards',7)">Конв. %</th>
-              <th>Оценка</th>
-            </tr></thead>
-            <tbody id="tbody-cards"><tr><td colspan="9" class="loader"></td></tr></tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-
-    <!-- ── WB vs OZON ── -->
-    <div class="section" id="section-platform">
-      <div class="platform-row" id="platform-compare">
-        <div class="loader"></div>
-      </div>
-      <div class="grid-2" style="flex:1;min-height:0">
-        <div class="card">
-          <div class="card-title">Выручка vs Чистая выручка</div>
-          <div class="chart-wrap"><canvas id="chart-platform-bar"></canvas></div>
-        </div>
-        <div class="card">
-          <div class="card-title">Доля выручки по площадкам</div>
-          <div class="chart-wrap"><canvas id="chart-platform-pie"></canvas></div>
-        </div>
-      </div>
-    </div>
-
-  </div><!-- /content -->
-</div><!-- /main -->
-
-<script>
-// ═══════════════ CONFIG ═══════════════
-const API = '';  // same origin
-Chart.defaults.color = '#888';
-Chart.defaults.borderColor = '#2a2a2a';
-Chart.defaults.font.family = "'Segoe UI', Arial, sans-serif";
-
-// ═══════════════ STATE ═══════════════
-let state = {
-  period: '30',
-  source: 'all',
-  cardsDays: 7,
-  stockFilter: 'all',
-  currentSection: 'finance',
-  charts: {},
-  data: { finance: null, products: null, abc: null, stock: null, cards: null, platform: null },
-  sortState: {},
-  productView: 'profit',
+const DC = {
+  bg: '#f0eee9',
+  grid: 'rgba(0,0,0,0.06)',
+  label: 'rgba(60,50,40,0.7)',
+  title: 'rgba(40,30,20,0.85)',
+  subtitle: 'rgba(60,50,40,0.6)',
+  postitBg: '#fef4a8',
+  postitText: '#5a4a2a',
+  font: '-apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif',
 };
 
-// ═══════════════ UTILS ═══════════════
-const fmt = n => n == null ? '—' : Number(n).toLocaleString('ru-RU');
-const fmtRub = n => n == null ? '—' : '₽' + Number(n).toLocaleString('ru-RU');
-const fmtPct = n => n == null ? '—' : Number(n).toFixed(1) + '%';
-
-async function apiFetch(path) {
-  const r = await fetch(API + path);
-  if (!r.ok) throw new Error(r.status);
-  return r.json();
+// One-time CSS injection (classes are dc-prefixed so they don't collide with
+// the hosted design's own styles).
+if (typeof document !== 'undefined' && !document.getElementById('dc-styles')) {
+  const s = document.createElement('style');
+  s.id = 'dc-styles';
+  s.textContent = [
+    '.dc-editable{cursor:text;outline:none;white-space:nowrap;border-radius:3px;padding:0 2px;margin:0 -2px}',
+    '.dc-editable:focus{background:#fff;box-shadow:0 0 0 1.5px #c96442}',
+    '[data-dc-slot]{transition:transform .18s cubic-bezier(.2,.7,.3,1)}',
+    '[data-dc-slot].dc-dragging{transition:none;z-index:10;pointer-events:none}',
+    '[data-dc-slot].dc-dragging .dc-card{box-shadow:0 12px 40px rgba(0,0,0,.25),0 0 0 2px #c96442;transform:scale(1.02)}',
+    // isolation:isolate contains artboard content's z-indexes so a
+    // z-indexed child (sticky navbar etc.) can't paint over .dc-header or
+    // the .dc-menu popover that drops into the top of the card.
+    '.dc-card{isolation:isolate;transition:box-shadow .15s,transform .15s}',
+    '.dc-card *{scrollbar-width:none}',
+    '.dc-card *::-webkit-scrollbar{display:none}',
+    // Per-artboard header: grip + label on the left, delete/expand on the
+    // right. Single flex row; when the artboard's on-screen width is too
+    // narrow for both the label yields (ellipsis, then hidden entirely below
+    // ~4ch via the container query) and the buttons stay on the row.
+    '.dc-header{position:absolute;bottom:100%;left:-4px;margin-bottom:calc(4px * var(--dc-inv-zoom,1));z-index:2;',
+    '  display:flex;align-items:center;container-type:inline-size}',
+    '.dc-labelrow{display:flex;align-items:center;gap:4px;height:24px;flex:1 1 auto;min-width:0}',
+    '.dc-grip{flex:0 0 auto;cursor:grab;display:flex;align-items:center;padding:5px 4px;border-radius:4px;transition:background .12s,opacity .12s}',
+    '.dc-grip:hover{background:rgba(0,0,0,.08)}',
+    '.dc-grip:active{cursor:grabbing}',
+    '.dc-labeltext{flex:1 1 auto;min-width:0;cursor:pointer;border-radius:4px;padding:3px 6px;',
+    '  display:flex;align-items:center;transition:background .12s;overflow:hidden}',
+    // Below ~4ch of label room: hide the label entirely, and drop the grip to
+    // hover-only (same reveal rule as .dc-btns) so a narrow header is clean
+    // until the card is moused.
+    '@container (max-width: 110px){',
+    '  .dc-labeltext{display:none}',
+    '  .dc-grip{opacity:0}',
+    '  [data-dc-slot]:hover .dc-grip{opacity:1}',
+    '}',
+    '.dc-labeltext:hover{background:rgba(0,0,0,.05)}',
+    '.dc-labeltext .dc-editable{overflow:hidden;text-overflow:ellipsis;max-width:100%}',
+    '.dc-labeltext .dc-editable:focus{overflow:visible;text-overflow:clip}',
+    '.dc-btns{flex:0 0 auto;margin-left:auto;display:flex;gap:2px;opacity:0;transition:opacity .12s}',
+    '[data-dc-slot]:hover .dc-btns,.dc-btns:has(.dc-menu){opacity:1}',
+    '.dc-expand,.dc-kebab{width:22px;height:22px;border-radius:5px;border:none;cursor:pointer;padding:0;',
+    '  background:transparent;color:rgba(60,50,40,.7);display:flex;align-items:center;justify-content:center;',
+    '  font:inherit;transition:background .12s,color .12s}',
+    '.dc-expand:hover,.dc-kebab:hover{background:rgba(0,0,0,.06);color:#2a251f}',
+    // Slot hosting an open menu floats above later siblings (which otherwise
+    // paint on top — same z-index:auto, later DOM order) so the popup isn't
+    // clipped by the next card.
+    '[data-dc-slot]:has(.dc-menu){z-index:10}',
+    '.dc-menu{position:absolute;top:100%;right:0;margin-top:4px;background:#fff;border-radius:8px;',
+    '  box-shadow:0 8px 28px rgba(0,0,0,.18),0 0 0 1px rgba(0,0,0,.05);padding:4px;min-width:160px;z-index:10}',
+    '.dc-menu button{display:block;width:100%;padding:7px 10px;border:0;background:transparent;',
+    '  border-radius:5px;font-family:inherit;font-size:13px;font-weight:500;line-height:1.2;',
+    '  color:#29261b;cursor:pointer;text-align:left;transition:background .12s;white-space:nowrap}',
+    '.dc-menu button:hover{background:rgba(0,0,0,.05)}',
+    '.dc-menu hr{border:0;border-top:1px solid rgba(0,0,0,.08);margin:4px 2px}',
+    '.dc-menu .dc-danger{color:#c96442}',
+    '.dc-menu .dc-danger:hover{background:rgba(201,100,66,.1)}',
+    // Chrome (titles / labels / buttons) counter-scales against the viewport
+    // zoom so it stays a constant on-screen size. --dc-inv-zoom is set by
+    // DCViewport on every transform update and inherits to all descendants —
+    // any overlay inside the world (e.g. a TweaksPanel on an artboard) can use
+    // it the same way.
+    //
+    // The header uses transform:scale (out-of-flow, so layout impact doesn't
+    // matter) with its world-space width set to card-width / inv-zoom so that
+    // after counter-scaling its on-screen width exactly matches the card's —
+    // that's what lets the container query + text-overflow behave against the
+    // card's visible edge at every zoom level.
+    //
+    // The section head uses CSS zoom instead of transform so its layout box
+    // grows with the counter-scale, pushing the card row down — otherwise the
+    // constant-screen-size title would overflow into the (shrinking) world-
+    // space gap and overlap the artboard headers at low zoom.
+    '.dc-header{width:calc((100% + 4px) / var(--dc-inv-zoom,1));',
+    '  transform:scale(var(--dc-inv-zoom,1));transform-origin:bottom left}',
+    '.dc-sectionhead{zoom:var(--dc-inv-zoom,1)}',
+  ].join('\n');
+  document.head.appendChild(s);
 }
 
-function setLoading(tbodyId, cols) {
-  document.getElementById(tbodyId).innerHTML =
-    `<tr><td colspan="${cols}" class="loader"></td></tr>`;
-}
+const DCCtx = React.createContext(null);
 
-// ═══════════════ NAVIGATION ═══════════════
-document.querySelectorAll('.nav-item').forEach(el => {
-  el.addEventListener('click', () => {
-    const sec = el.dataset.section;
-    document.querySelectorAll('.nav-item').forEach(x => x.classList.remove('active'));
-    el.classList.add('active');
-    document.querySelectorAll('.section').forEach(x => x.classList.remove('active'));
-    document.getElementById('section-' + sec).classList.add('active');
-    const titles = {finance:'Финансы',products:'Товары',stock:'Склад',cards:'Карточки',platform:'WB vs Ozon'};
-    document.getElementById('page-title').textContent = titles[sec] || sec;
-    state.currentSection = sec;
-    loadSection(sec);
+// Recursively unwrap React.Fragment so <>…</> grouping doesn't hide
+// DCSection/DCArtboard children from the type-based walks below.
+function dcFlatten(children) {
+  const out = [];
+  React.Children.forEach(children, (c) => {
+    if (c && c.type === React.Fragment) out.push(...dcFlatten(c.props.children));
+    else out.push(c);
   });
-});
+  return out;
+}
 
-function loadSection(sec) {
-  switch(sec) {
-    case 'finance':  loadFinance(); break;
-    case 'products': loadProducts(); break;
-    case 'stock':    loadStock(); break;
-    case 'cards':    loadCards(); break;
-    case 'platform': loadPlatform(); break;
+// ─────────────────────────────────────────────────────────────
+// DesignCanvas — stateful wrapper around the pan/zoom viewport.
+// Owns runtime state (per-section order, renamed titles/labels, hidden
+// artboards, focused artboard). Order/titles/labels/hidden persist to a
+// .design-canvas.state.json
+// sidecar next to the HTML. Reads go via plain fetch() so the saved
+// arrangement is visible anywhere the HTML + sidecar are served together
+// (omelette preview, direct link, downloaded zip). Writes go through the
+// host's window.omelette bridge — editing requires the omelette runtime.
+// Focus is ephemeral.
+// ─────────────────────────────────────────────────────────────
+const DC_STATE_FILE = '.design-canvas.state.json';
+
+function DesignCanvas({ children, minScale, maxScale, style }) {
+  const [state, setState] = React.useState({ sections: {}, focus: null });
+  // Hold rendering until the sidecar read settles so the saved order/titles
+  // appear on first paint (no source-order flash). didRead gates writes until
+  // the read settles so the empty initial state can't clobber a slow read;
+  // skipNextWrite suppresses the one echo-write that would otherwise follow
+  // hydration.
+  const [ready, setReady] = React.useState(false);
+  const didRead = React.useRef(false);
+  const skipNextWrite = React.useRef(false);
+
+  React.useEffect(() => {
+    let off = false;
+    fetch('./' + DC_STATE_FILE)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((saved) => {
+        if (off || !saved || !saved.sections) return;
+        skipNextWrite.current = true;
+        setState((s) => ({ ...s, sections: saved.sections }));
+      })
+      .catch(() => {})
+      .finally(() => { didRead.current = true; if (!off) setReady(true); });
+    const t = setTimeout(() => { if (!off) setReady(true); }, 150);
+    return () => { off = true; clearTimeout(t); };
+  }, []);
+
+  React.useEffect(() => {
+    if (!didRead.current) return;
+    if (skipNextWrite.current) { skipNextWrite.current = false; return; }
+    const t = setTimeout(() => {
+      window.omelette?.writeFile(DC_STATE_FILE, JSON.stringify({ sections: state.sections })).catch(() => {});
+    }, 250);
+    return () => clearTimeout(t);
+  }, [state.sections]);
+
+  // Build registries synchronously from children so FocusOverlay can read
+  // them in the same render. Fragments are flattened; wrapping in other
+  // elements still opts out of focus/reorder.
+  const registry = {};     // slotId -> { sectionId, artboard }
+  const sectionMeta = {};  // sectionId -> { title, subtitle, slotIds[] }
+  const sectionOrder = [];
+  dcFlatten(children).forEach((sec) => {
+    if (!sec || sec.type !== DCSection) return;
+    const sid = sec.props.id ?? sec.props.title;
+    if (!sid) return;
+    sectionOrder.push(sid);
+    const persisted = state.sections[sid] || {};
+    const abs = [];
+    dcFlatten(sec.props.children).forEach((ab) => {
+      if (!ab || ab.type !== DCArtboard) return;
+      const aid = ab.props.id ?? ab.props.label;
+      if (aid) abs.push([aid, ab]);
+    });
+    // hidden is scoped to one source revision — when the agent regenerates
+    // (artboard-ID set changes), prior deletes don't apply to new content.
+    const srcKey = abs.map(([k]) => k).join('\x1f');
+    const hidden = persisted.srcKey === srcKey ? (persisted.hidden || []) : [];
+    const srcIds = [];
+    abs.forEach(([aid, ab]) => {
+      if (hidden.includes(aid)) return;
+      registry[`${sid}/${aid}`] = { sectionId: sid, artboard: ab };
+      srcIds.push(aid);
+    });
+    const kept = (persisted.order || []).filter((k) => srcIds.includes(k));
+    sectionMeta[sid] = {
+      title: persisted.title ?? sec.props.title,
+      subtitle: sec.props.subtitle,
+      slotIds: [...kept, ...srcIds.filter((k) => !kept.includes(k))],
+    };
+  });
+
+  const api = React.useMemo(() => ({
+    state,
+    section: (id) => state.sections[id] || {},
+    patchSection: (id, p) => setState((s) => ({
+      ...s,
+      sections: { ...s.sections, [id]: { ...s.sections[id], ...(typeof p === 'function' ? p(s.sections[id] || {}) : p) } },
+    })),
+    setFocus: (slotId) => setState((s) => ({ ...s, focus: slotId })),
+  }), [state]);
+
+  // Esc exits focus; any outside pointerdown commits an in-progress rename.
+  React.useEffect(() => {
+    const onKey = (e) => { if (e.key === 'Escape') api.setFocus(null); };
+    const onPd = (e) => {
+      const ae = document.activeElement;
+      if (ae && ae.isContentEditable && !ae.contains(e.target)) ae.blur();
+    };
+    document.addEventListener('keydown', onKey);
+    document.addEventListener('pointerdown', onPd, true);
+    return () => {
+      document.removeEventListener('keydown', onKey);
+      document.removeEventListener('pointerdown', onPd, true);
+    };
+  }, [api]);
+
+  return (
+    <DCCtx.Provider value={api}>
+      <DCViewport minScale={minScale} maxScale={maxScale} style={style}>{ready && children}</DCViewport>
+      {state.focus && registry[state.focus] && (
+        <DCFocusOverlay entry={registry[state.focus]} sectionMeta={sectionMeta} sectionOrder={sectionOrder} />
+      )}
+    </DCCtx.Provider>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────
+// DCViewport — transform-based pan/zoom (internal)
+//
+// Input mapping (Figma-style):
+//   • trackpad pinch  → zoom   (ctrlKey wheel; Safari gesture* events)
+//   • trackpad scroll → pan    (two-finger)
+//   • mouse wheel     → zoom   (notched; distinguished from trackpad scroll)
+//   • middle-drag / primary-drag-on-bg → pan
+//
+// Transform state lives in a ref and is written straight to the DOM
+// (translate3d + will-change) so wheel ticks don't go through React —
+// keeps pans at 60fps on dense canvases.
+// ─────────────────────────────────────────────────────────────
+function DCViewport({ children, minScale = 0.1, maxScale = 8, style = {} }) {
+  const vpRef = React.useRef(null);
+  const worldRef = React.useRef(null);
+  const tf = React.useRef({ x: 0, y: 0, scale: 1 });
+  // Persist viewport across reloads so the user lands back where they were
+  // after an agent edit or browser refresh. The sandbox origin is already
+  // per-project; pathname keeps multiple canvas files in one project apart.
+  const tfKey = 'dc-viewport:' + location.pathname;
+  const saveT = React.useRef(0);
+
+  const lastPostedScale = React.useRef();
+  const apply = React.useCallback(() => {
+    const { x, y, scale } = tf.current;
+    const el = worldRef.current;
+    if (!el) return;
+    el.style.transform = `translate3d(${x}px, ${y}px, 0) scale(${scale})`;
+    // Exposed for zoom-invariant chrome (labels, buttons, TweaksPanel).
+    el.style.setProperty('--dc-inv-zoom', String(1 / scale));
+    // Keep the host toolbar's % readout in sync with the canvas scale. Pan
+    // ticks leave scale unchanged — skip the cross-frame post for those.
+    if (lastPostedScale.current !== scale) {
+      lastPostedScale.current = scale;
+      window.parent.postMessage({ type: '__dc_zoom', scale }, '*');
+    }
+    clearTimeout(saveT.current);
+    saveT.current = setTimeout(() => {
+      try { localStorage.setItem(tfKey, JSON.stringify(tf.current)); } catch {}
+    }, 200);
+  }, [tfKey]);
+
+  React.useLayoutEffect(() => {
+    const flush = () => {
+      clearTimeout(saveT.current);
+      try { localStorage.setItem(tfKey, JSON.stringify(tf.current)); } catch {}
+    };
+    try {
+      const s = JSON.parse(localStorage.getItem(tfKey) || 'null');
+      if (s && Number.isFinite(s.x) && Number.isFinite(s.y) && Number.isFinite(s.scale)) {
+        tf.current = { x: s.x, y: s.y, scale: Math.min(maxScale, Math.max(minScale, s.scale)) };
+        apply();
+      }
+    } catch {}
+    // Flush on pagehide and unmount so a reload within the 200ms debounce
+    // window doesn't drop the last pan/zoom.
+    window.addEventListener('pagehide', flush);
+    return () => { window.removeEventListener('pagehide', flush); flush(); };
+  }, []);
+
+  React.useEffect(() => {
+    const vp = vpRef.current;
+    if (!vp) return;
+
+    const zoomAt = (cx, cy, factor) => {
+      const r = vp.getBoundingClientRect();
+      const px = cx - r.left, py = cy - r.top;
+      const t = tf.current;
+      const next = Math.min(maxScale, Math.max(minScale, t.scale * factor));
+      const k = next / t.scale;
+      // --dc-inv-zoom consumers (.dc-sectionhead's CSS zoom, each section's
+      // marginBottom) reflow on every scale change, vertically shifting the
+      // world layout — so a world point mathematically pinned under the cursor
+      // drifts as you zoom (content creeps up on zoom-in, down on zoom-out).
+      // Anchor the DOM element under the cursor instead: record its screen Y,
+      // apply the transform + --dc-inv-zoom, then cancel whatever vertical
+      // drift the reflow introduced so it stays put on screen.
+      let marker = null, markerY0 = 0;
+      if (k !== 1) {
+        const hit = document.elementFromPoint(cx, cy);
+        marker = hit && hit.closest ? hit.closest('[data-dc-slot],[data-dc-section]') : null;
+        if (marker) markerY0 = marker.getBoundingClientRect().top;
+      }
+      // keep the world point under the cursor fixed
+      t.x = px - (px - t.x) * k;
+      t.y = py - (py - t.y) * k;
+      t.scale = next;
+      apply();
+      if (marker) {
+        // A pure zoom around (cx, cy) maps screen Y → cy + (Y - cy) * k. Any
+        // departure after the --dc-inv-zoom reflow is the layout drift.
+        const drift = marker.getBoundingClientRect().top - (cy + (markerY0 - cy) * k);
+        if (Math.abs(drift) > 0.1) { t.y -= drift; apply(); }
+      }
+    };
+
+    // Mouse-wheel vs trackpad-scroll heuristic. A physical wheel sends
+    // line-mode deltas (Firefox) or large integer pixel deltas with no X
+    // component (Chrome/Safari, typically multiples of 100/120). Trackpad
+    // two-finger scroll sends small/fractional pixel deltas, often with
+    // non-zero deltaX. ctrlKey is set by the browser for trackpad pinch.
+    const isMouseWheel = (e) =>
+      e.deltaMode !== 0 ||
+      (e.deltaX === 0 && Number.isInteger(e.deltaY) && Math.abs(e.deltaY) >= 40);
+
+    const onWheel = (e) => {
+      e.preventDefault();
+      if (isGesturing) return; // Safari: gesture* owns the pinch — discard concurrent wheels
+      if ((e.ctrlKey || e.metaKey) && !isMouseWheel(e)) {
+        // trackpad pinch, or ctrl/cmd + smooth-scroll mouse. Notched
+        // wheels fall through to the fixed-step branch below.
+        zoomAt(e.clientX, e.clientY, Math.exp(-e.deltaY * 0.01));
+      } else if (isMouseWheel(e)) {
+        // notched mouse wheel — fixed-ratio step per click
+        zoomAt(e.clientX, e.clientY, Math.exp(-Math.sign(e.deltaY) * 0.18));
+      } else {
+        // trackpad two-finger scroll — pan
+        tf.current.x -= e.deltaX;
+        tf.current.y -= e.deltaY;
+        apply();
+      }
+    };
+
+    // Safari sends native gesture* events for trackpad pinch with a smooth
+    // e.scale; preferring these over the ctrl+wheel fallback gives a much
+    // better feel there. No-ops on other browsers. Safari also fires
+    // ctrlKey wheel events during the same pinch — isGesturing makes
+    // onWheel drop those entirely so they neither zoom nor pan.
+    let gsBase = 1;
+    let isGesturing = false;
+    const onGestureStart = (e) => { e.preventDefault(); isGesturing = true; gsBase = tf.current.scale; };
+    const onGestureChange = (e) => {
+      e.preventDefault();
+      zoomAt(e.clientX, e.clientY, (gsBase * e.scale) / tf.current.scale);
+    };
+    const onGestureEnd = (e) => { e.preventDefault(); isGesturing = false; };
+
+    // Drag-pan: middle button anywhere, or primary button on canvas
+    // background (anything that isn't an artboard or an inline editor).
+    let drag = null;
+    const onPointerDown = (e) => {
+      const onBg = !e.target.closest('[data-dc-slot], .dc-editable');
+      if (!(e.button === 1 || (e.button === 0 && onBg))) return;
+      e.preventDefault();
+      vp.setPointerCapture(e.pointerId);
+      drag = { id: e.pointerId, lx: e.clientX, ly: e.clientY };
+      vp.style.cursor = 'grabbing';
+    };
+    const onPointerMove = (e) => {
+      if (!drag || e.pointerId !== drag.id) return;
+      tf.current.x += e.clientX - drag.lx;
+      tf.current.y += e.clientY - drag.ly;
+      drag.lx = e.clientX; drag.ly = e.clientY;
+      apply();
+    };
+    const onPointerUp = (e) => {
+      if (!drag || e.pointerId !== drag.id) return;
+      vp.releasePointerCapture(e.pointerId);
+      drag = null;
+      vp.style.cursor = '';
+    };
+
+    // Host-driven zoom (toolbar % menu). Zooms around viewport centre so the
+    // visible midpoint stays fixed — matching the host's iframe-zoom feel.
+    const onHostMsg = (e) => {
+      const d = e.data;
+      if (d && d.type === '__dc_set_zoom' && typeof d.scale === 'number') {
+        const r = vp.getBoundingClientRect();
+        zoomAt(r.left + r.width / 2, r.top + r.height / 2, d.scale / tf.current.scale);
+      } else if (d && d.type === '__dc_probe') {
+        // Host's [readyGen] reset asks whether a canvas is present; it
+        // fires on the iframe's native 'load', which for canvases with
+        // images/fonts is after our mount-time announce, so re-announce.
+        // Clear the pan-tick guard so apply() re-posts the current scale
+        // even if it's unchanged — the host just reset dcScale to 1.
+        window.parent.postMessage({ type: '__dc_present' }, '*');
+        lastPostedScale.current = undefined;
+        apply();
+      }
+    };
+    window.addEventListener('message', onHostMsg);
+    // Announce canvas mode so the host toolbar proxies its % control here
+    // instead of scaling the iframe element (which would just shrink the
+    // viewport window of an infinite canvas). The apply() that follows emits
+    // the initial __dc_zoom so the toolbar % is correct before first pinch.
+    // lastPostedScale reset mirrors the __dc_probe handler: the layout
+    // effect's restore-path apply() may already have posted the restored
+    // scale (before __dc_present), so clear the guard to re-post it in order.
+    window.parent.postMessage({ type: '__dc_present' }, '*');
+    lastPostedScale.current = undefined;
+    apply();
+
+    vp.addEventListener('wheel', onWheel, { passive: false });
+    vp.addEventListener('gesturestart', onGestureStart, { passive: false });
+    vp.addEventListener('gesturechange', onGestureChange, { passive: false });
+    vp.addEventListener('gestureend', onGestureEnd, { passive: false });
+    vp.addEventListener('pointerdown', onPointerDown);
+    vp.addEventListener('pointermove', onPointerMove);
+    vp.addEventListener('pointerup', onPointerUp);
+    vp.addEventListener('pointercancel', onPointerUp);
+    return () => {
+      window.removeEventListener('message', onHostMsg);
+      vp.removeEventListener('wheel', onWheel);
+      vp.removeEventListener('gesturestart', onGestureStart);
+      vp.removeEventListener('gesturechange', onGestureChange);
+      vp.removeEventListener('gestureend', onGestureEnd);
+      vp.removeEventListener('pointerdown', onPointerDown);
+      vp.removeEventListener('pointermove', onPointerMove);
+      vp.removeEventListener('pointerup', onPointerUp);
+      vp.removeEventListener('pointercancel', onPointerUp);
+    };
+  }, [apply, minScale, maxScale]);
+
+  const gridSvg = `url("data:image/svg+xml,%3Csvg width='120' height='120' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M120 0H0v120' fill='none' stroke='${encodeURIComponent(DC.grid)}' stroke-width='1'/%3E%3C/svg%3E")`;
+  return (
+    <div
+      ref={vpRef}
+      className="design-canvas"
+      style={{
+        height: '100vh', width: '100vw',
+        background: DC.bg,
+        overflow: 'hidden',
+        overscrollBehavior: 'none',
+        touchAction: 'none',
+        position: 'relative',
+        fontFamily: DC.font,
+        boxSizing: 'border-box',
+        ...style,
+      }}
+    >
+      <div
+        ref={worldRef}
+        style={{
+          position: 'absolute', top: 0, left: 0,
+          transformOrigin: '0 0',
+          willChange: 'transform',
+          width: 'max-content', minWidth: '100%',
+          minHeight: '100%',
+          padding: '60px 0 80px',
+        }}
+      >
+        <div style={{ position: 'absolute', inset: -6000, backgroundImage: gridSvg, backgroundSize: '120px 120px', pointerEvents: 'none', zIndex: -1 }} />
+        {children}
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────
+// DCSection — editable title + h-row of artboards in persisted order
+// ─────────────────────────────────────────────────────────────
+function DCSection({ id, title, subtitle, children, gap = 48 }) {
+  const ctx = React.useContext(DCCtx);
+  const sid = id ?? title;
+  const all = React.Children.toArray(dcFlatten(children));
+  const artboards = all.filter((c) => c && c.type === DCArtboard);
+  const rest = all.filter((c) => !(c && c.type === DCArtboard));
+  const sec = (ctx && sid && ctx.section(sid)) || {};
+  // Must match DesignCanvas's srcKey computation exactly (it filters falsy
+  // IDs), or onDelete persists a srcKey that DesignCanvas never recognizes.
+  const allIds = artboards.map((a) => a.props.id ?? a.props.label).filter(Boolean);
+  const srcKey = allIds.join('\x1f');
+  const hidden = sec.srcKey === srcKey ? (sec.hidden || []) : [];
+  const srcOrder = allIds.filter((k) => !hidden.includes(k));
+
+  const order = React.useMemo(() => {
+    const kept = (sec.order || []).filter((k) => srcOrder.includes(k));
+    return [...kept, ...srcOrder.filter((k) => !kept.includes(k))];
+  }, [sec.order, srcOrder.join('|')]);
+
+  const byId = Object.fromEntries(artboards.map((a) => [a.props.id ?? a.props.label, a]));
+
+  // marginBottom counter-scales so the on-screen gap between sections stays
+  // constant — otherwise at low zoom the (world-space) gap collapses while
+  // the screen-constant sectionhead below it doesn't, and the title reads as
+  // belonging to the section above. paddingBottom below is just enough for
+  // the 24px artboard-header (abs-positioned above each card) plus ~8px, so
+  // the title sits tight against its own row at every zoom.
+  return (
+    <div data-dc-section={sid}
+      style={{ marginBottom: 'calc(80px * var(--dc-inv-zoom, 1))', position: 'relative' }}>
+      <div style={{ padding: '0 60px' }}>
+        <div className="dc-sectionhead" style={{ paddingBottom: 36 }}>
+          <DCEditable tag="div" value={sec.title ?? title}
+            onChange={(v) => ctx && sid && ctx.patchSection(sid, { title: v })}
+            style={{ fontSize: 28, fontWeight: 600, color: DC.title, letterSpacing: -0.4, marginBottom: 6, display: 'inline-block' }} />
+          {subtitle && <div style={{ fontSize: 16, color: DC.subtitle }}>{subtitle}</div>}
+        </div>
+      </div>
+      <div style={{ display: 'flex', gap, padding: '0 60px', alignItems: 'flex-start', width: 'max-content' }}>
+        {order.map((k) => (
+          <DCArtboardFrame key={k} sectionId={sid} artboard={byId[k]} order={order}
+            label={(sec.labels || {})[k] ?? byId[k].props.label}
+            onRename={(v) => ctx && ctx.patchSection(sid, (x) => ({ labels: { ...x.labels, [k]: v } }))}
+            onReorder={(next) => ctx && ctx.patchSection(sid, { order: next })}
+            onDelete={() => ctx && ctx.patchSection(sid, (x) => ({
+              hidden: [...(x.srcKey === srcKey ? (x.hidden || []) : []), k],
+              srcKey,
+            }))}
+            onFocus={() => ctx && ctx.setFocus(`${sid}/${k}`)} />
+        ))}
+      </div>
+      {rest}
+    </div>
+  );
+}
+
+// DCArtboard — marker; rendered by DCArtboardFrame via DCSection.
+function DCArtboard() { return null; }
+
+// Per-artboard export (kind: 'png' | 'html'). Both paths share the same
+// self-contained clone: computed styles baked in, @font-face / <img> /
+// inline-style background-image urls inlined as data URIs. PNG wraps the
+// clone in foreignObject→canvas at 3× the artboard's natural width×height
+// (same pipeline the host uses for page captures); HTML wraps it in a
+// minimal standalone document. Both are independent of viewport zoom.
+async function dcExport(node, w, h, name, kind) {
+  try { await document.fonts.ready; } catch {}
+  const toDataURL = (url) => fetch(url).then((r) => r.blob()).then((b) => new Promise((res) => {
+    const fr = new FileReader(); fr.onload = () => res(fr.result); fr.onerror = () => res(url); fr.readAsDataURL(b);
+  })).catch(() => url);
+
+  // Collect @font-face rules. ss.cssRules throws SecurityError on
+  // cross-origin sheets (e.g. fonts.googleapis.com) — in that case fetch
+  // the CSS text directly (those endpoints send ACAO:*) and regex-extract
+  // the blocks. @import and @media/@supports are walked so nested
+  // @font-face rules aren't missed.
+  const fontRules = [], pending = [], seen = new Set();
+  const scrapeCss = (href) => {
+    if (seen.has(href)) return; seen.add(href);
+    pending.push(fetch(href).then((r) => r.text()).then((css) => {
+      for (const m of css.match(/@font-face\s*{[^}]*}/g) || []) fontRules.push({ css: m, base: href });
+      for (const m of css.matchAll(/@import\s+(?:url\()?['"]?([^'")\s;]+)/g))
+        scrapeCss(new URL(m[1], href).href);
+    }).catch(() => {}));
+  };
+  const walk = (rules, base) => {
+    for (const r of rules) {
+      if (r.type === CSSRule.FONT_FACE_RULE) fontRules.push({ css: r.cssText, base });
+      else if (r.type === CSSRule.IMPORT_RULE && r.styleSheet) {
+        const ibase = r.styleSheet.href || base;
+        try { walk(r.styleSheet.cssRules, ibase); } catch { scrapeCss(ibase); }
+      } else if (r.cssRules) walk(r.cssRules, base);
+    }
+  };
+  for (const ss of document.styleSheets) {
+    const base = ss.href || location.href;
+    try { walk(ss.cssRules, base); } catch { if (ss.href) scrapeCss(ss.href); }
   }
-}
-
-// ═══════════════ PERIOD & SOURCE BUTTONS ═══════════════
-document.querySelectorAll('#period-btns .btn').forEach(btn => {
-  btn.addEventListener('click', () => {
-    document.querySelectorAll('#period-btns .btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    state.period = btn.dataset.period;
-    loadFinance();
-  });
-});
-
-document.querySelectorAll('#source-btns .btn').forEach(btn => {
-  btn.addEventListener('click', () => {
-    document.querySelectorAll('#source-btns .btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    state.source = btn.dataset.source;
-    loadFinance();
-  });
-});
-
-document.querySelectorAll('#stock-filter-btns .btn').forEach(btn => {
-  btn.addEventListener('click', () => {
-    document.querySelectorAll('#stock-filter-btns .btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    state.stockFilter = btn.dataset.filter;
-    renderStock();
-  });
-});
-
-document.querySelectorAll('#cards-period-btns .btn').forEach(btn => {
-  btn.addEventListener('click', () => {
-    document.querySelectorAll('#cards-period-btns .btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    state.cardsDays = parseInt(btn.dataset.days);
-    loadCards();
-  });
-});
-
-// ═══════════════ KPIs ═══════════════
-async function loadKPIs() {
-  try {
-    const d = await apiFetch('/api/kpis');
-    document.getElementById('kpi-revenue').textContent = fmtRub(d.revenue_30d);
-    document.getElementById('kpi-profit').textContent  = fmtRub(d.profit_30d);
-    document.getElementById('kpi-units').textContent   = fmt(d.units_30d);
-    document.getElementById('kpi-urgent').textContent  = fmt(d.urgent);
-    document.getElementById('kpi-skus').textContent    = fmt(d.total_skus);
-    document.getElementById('kpi-margin-sub').textContent = 'маржа ' + fmtPct(d.margin_pct);
-    document.getElementById('kpi-reorder-sub').textContent =
-      (d.reorder || 0) + ' ещё к докупке';
-    const badge = document.getElementById('badge-urgent');
-    badge.textContent = d.urgent || 0;
-    badge.style.display = (d.urgent > 0) ? '' : 'none';
-  } catch(e) { console.error('KPI error', e); }
-}
-
-// ═══════════════ FINANCE ═══════════════
-async function loadFinance() {
-  const p = state.period;
-  const src = state.source;
-  let url;
-  if (p === 'weekly')     url = `/api/profit/weekly?weeks=12&source=${src}`;
-  else if (p === 'monthly')    url = `/api/profit/monthly`;
-  else if (p === 'quarterly')  url = `/api/profit/quarterly`;
-  else url = `/api/profit/daily?days=${p}&source=${src}`;
-
-  try {
-    const raw = await apiFetch(url);
-    renderFinanceCharts(raw, p);
-  } catch(e) { console.error('Finance error', e); }
-}
-
-function groupFinanceData(raw, period) {
-  // Aggregate WB+Ozon into single series
-  const map = {};
-  raw.forEach(r => {
-    let key = r.day || r.week_start || r.month ||
-              (r.year && r.quarter ? `${r.year} Q${r.quarter}` : '');
-    if (!map[key]) map[key] = { revenue: 0, net_revenue: 0, gross_profit: 0, units: 0 };
-    map[key].revenue      += Number(r.revenue      || 0);
-    map[key].net_revenue  += Number(r.net_revenue  || 0);
-    map[key].gross_profit += Number(r.gross_profit || 0);
-    map[key].units        += Number(r.units_sold   || 0);
-  });
-  const keys = Object.keys(map).sort();
-  const labels = keys.map(k => {
-    if (/^\d{4}-\d{2}-\d{2}/.test(k)) {
-      const d = new Date(k);
-      return period === 'weekly'
-        ? d.toLocaleDateString('ru-RU', {day:'2-digit',month:'short'})
-        : d.toLocaleDateString('ru-RU', {day:'2-digit',month:'2-digit'});
+  while (pending.length) await pending.shift();
+  const fontCss = (await Promise.all(fontRules.map(async (rule) => {
+    let out = rule.css, m; const re = /url\((['"]?)([^'")]+)\1\)/g;
+    while ((m = re.exec(rule.css))) {
+      if (m[2].indexOf('data:') === 0) continue;
+      let abs; try { abs = new URL(m[2], rule.base).href; } catch { continue; }
+      out = out.split(m[0]).join('url("' + await toDataURL(abs) + '")');
     }
-    return k;
-  });
-  return { labels, data: keys.map(k => map[k]) };
-}
+    return out;
+  }))).join('\n');
 
-function makeChart(id, cfg) {
-  if (state.charts[id]) state.charts[id].destroy();
-  const ctx = document.getElementById(id);
-  if (!ctx) return;
-  state.charts[id] = new Chart(ctx, cfg);
-}
-
-function renderFinanceCharts(raw, period) {
-  const { labels, data } = groupFinanceData(raw, period);
-  const revenue  = data.map(d => d.revenue);
-  const profit   = data.map(d => d.gross_profit);
-  const units    = data.map(d => d.units);
-
-  makeChart('chart-revenue', {
-    type: 'line',
-    data: {
-      labels,
-      datasets: [
-        {
-          label: 'Выручка',
-          data: revenue,
-          borderColor: '#ff6600',
-          backgroundColor: 'rgba(255,102,0,.08)',
-          fill: true,
-          tension: .35,
-          pointRadius: labels.length > 60 ? 0 : 3,
-        },
-        {
-          label: 'Прибыль',
-          data: profit,
-          borderColor: '#00c853',
-          backgroundColor: 'rgba(0,200,83,.06)',
-          fill: true,
-          tension: .35,
-          pointRadius: labels.length > 60 ? 0 : 3,
-        },
-      ],
-    },
-    options: {
-      responsive: true, maintainAspectRatio: false,
-      plugins: { legend: { labels: { color: '#aaa', boxWidth: 12 } } },
-      scales: {
-        x: { ticks: { maxTicksLimit: 12, maxRotation: 0 } },
-        y: { ticks: { callback: v => '₽' + (v/1000).toFixed(0) + 'к' } },
-      },
-    },
-  });
-
-  makeChart('chart-units', {
-    type: 'bar',
-    data: {
-      labels,
-      datasets: [{
-        label: 'Штук',
-        data: units,
-        backgroundColor: 'rgba(255,102,0,.6)',
-        borderColor: '#ff6600',
-        borderWidth: 1,
-        borderRadius: 3,
-      }],
-    },
-    options: {
-      responsive: true, maintainAspectRatio: false,
-      plugins: { legend: { display: false } },
-      scales: {
-        x: { ticks: { maxTicksLimit: 12, maxRotation: 0 } },
-        y: { ticks: { stepSize: 1 } },
-      },
-    },
-  });
-}
-
-// ═══════════════ PRODUCTS ═══════════════
-async function loadProducts() {
-  try {
-    if (!state.data.products) {
-      state.data.products = await apiFetch('/api/profitability');
+  const cloneStyled = (src) => {
+    if (src.nodeType === 8 || (src.nodeType === 1 && src.tagName === 'SCRIPT')) return document.createTextNode('');
+    const dst = src.cloneNode(false);
+    if (src.nodeType === 1) {
+      const cs = getComputedStyle(src); let txt = '';
+      for (let i = 0; i < cs.length; i++) txt += cs[i] + ':' + cs.getPropertyValue(cs[i]) + ';';
+      dst.setAttribute('style', txt + 'animation:none;transition:none;');
+      if (src.tagName === 'CANVAS') try { const im = document.createElement('img'); im.src = src.toDataURL(); im.setAttribute('style', txt); return im; } catch {}
     }
-    if (!state.data.abc) {
-      state.data.abc = await apiFetch('/api/abc');
+    for (let c = src.firstChild; c; c = c.nextSibling) dst.appendChild(cloneStyled(c));
+    return dst;
+  };
+  const clone = cloneStyled(node);
+  clone.setAttribute('xmlns', 'http://www.w3.org/1999/xhtml');
+  // Drop the card's own shadow/radius so the export is a flush w×h rect;
+  // the artboard's own background (if any) is already in the computed style.
+  clone.style.boxShadow = 'none'; clone.style.borderRadius = '0';
+
+  const jobs = [];
+  clone.querySelectorAll('img').forEach((el) => {
+    const s = el.getAttribute('src');
+    if (s && s.indexOf('data:') !== 0) jobs.push(toDataURL(el.src).then((d) => el.setAttribute('src', d)));
+  });
+  [clone, ...clone.querySelectorAll('*')].forEach((el) => {
+    const bg = el.style.backgroundImage; if (!bg) return;
+    let m; const re = /url\(["']?([^"')]+)["']?\)/g;
+    while ((m = re.exec(bg))) {
+      const tok = m[0], url = m[1];
+      if (url.indexOf('data:') === 0) continue;
+      jobs.push(toDataURL(url).then((d) => { el.style.backgroundImage = el.style.backgroundImage.split(tok).join('url("' + d + '")'); }));
     }
-    renderProfitTable(state.data.products);
-    renderABC(state.data.abc);
-  } catch(e) { console.error('Products error', e); }
+  });
+  await Promise.all(jobs);
+
+  const xml = new XMLSerializer().serializeToString(clone);
+  const save = (blob, ext) => {
+    if (!blob) return;
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob); a.download = name + '.' + ext; a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  };
+
+  if (kind === 'html') {
+    const html = '<!doctype html><html><head><meta charset="utf-8"><title>' + name + '</title>' +
+      (fontCss ? '<style>' + fontCss + '</style>' : '') +
+      '</head><body style="margin:0">' + xml + '</body></html>';
+    return save(new Blob([html], { type: 'text/html' }), 'html');
+  }
+
+  // PNG: the SVG's own width/height must be the output resolution — an
+  // <img>-loaded SVG rasterizes at its intrinsic size, so sizing it at 1×
+  // and ctx.scale()-ing up would just upscale a 1× bitmap. viewBox maps the
+  // w×h foreignObject onto the px·w × px·h SVG canvas so the browser renders
+  // the HTML at full resolution.
+  const px = 3;
+  const svg = '<svg xmlns="http://www.w3.org/2000/svg" width="' + w * px + '" height="' + h * px +
+    '" viewBox="0 0 ' + w + ' ' + h + '"><foreignObject width="' + w + '" height="' + h + '">' +
+    (fontCss ? '<style><![CDATA[' + fontCss + ']]></style>' : '') + xml + '</foreignObject></svg>';
+  const img = new Image();
+  await new Promise((res, rej) => {
+    img.onload = res; img.onerror = () => rej(new Error('svg load failed'));
+    img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+  });
+  const cv = document.createElement('canvas');
+  cv.width = w * px; cv.height = h * px;
+  cv.getContext('2d').drawImage(img, 0, 0);
+  cv.toBlob((blob) => save(blob, 'png'), 'image/png');
 }
 
-function renderProfitTable(rows) {
-  const search = (document.getElementById('product-search').value || '').toLowerCase();
-  const filtered = rows.filter(r => !search || r.name.toLowerCase().includes(search));
-  const tbody = document.getElementById('tbody-profit');
-  if (!filtered.length) { tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;color:var(--muted);padding:30px">Нет данных</td></tr>'; return; }
-  tbody.innerHTML = filtered.map(r => {
-    const roi = r.roi_pct;
-    const roiClass = roi == null ? '' : roi >= 30 ? 'roi-high' : roi >= 10 ? 'roi-mid' : 'roi-low';
-    const profitClass = (r.gross_profit || 0) >= 0 ? 'roi-high' : 'roi-low';
-    return `<tr>
-      <td>${r.name || '—'}</td>
-      <td><span class="badge badge-blue">${r.category || '—'}</span></td>
-      <td>${fmtRub(r.cost_price)}</td>
-      <td>${fmt(r.units_sold)}</td>
-      <td>${fmtRub(r.revenue)}</td>
-      <td style="color:var(--muted)">${fmtRub(r.commission)}</td>
-      <td style="color:var(--muted)">${fmtRub(r.logistics)}</td>
-      <td class="${profitClass}">${fmtRub(r.gross_profit)}</td>
-      <td class="${roiClass}">${roi != null ? roi + '%' : '—'}</td>
-    </tr>`;
-  }).join('');
+function DCArtboardFrame({ sectionId, artboard, label, order, onRename, onReorder, onFocus, onDelete }) {
+  const { id: rawId, label: rawLabel, width = 260, height = 480, children, style = {} } = artboard.props;
+  const id = rawId ?? rawLabel;
+  const ref = React.useRef(null);
+  const cardRef = React.useRef(null);
+  const menuRef = React.useRef(null);
+  const [menuOpen, setMenuOpen] = React.useState(false);
+  const [confirming, setConfirming] = React.useState(false);
+
+  // ⋯ menu: close on any outside pointerdown. Two-click delete lives inside
+  // the menu — first click arms the row, second commits; closing disarms.
+  React.useEffect(() => {
+    if (!menuOpen) { setConfirming(false); return; }
+    const off = (e) => { if (!menuRef.current || !menuRef.current.contains(e.target)) setMenuOpen(false); };
+    document.addEventListener('pointerdown', off, true);
+    return () => document.removeEventListener('pointerdown', off, true);
+  }, [menuOpen]);
+
+  const doExport = (kind) => {
+    setMenuOpen(false);
+    if (!cardRef.current) return;
+    const name = String(label || id || 'artboard').replace(/[^\w\s.-]+/g, '_');
+    dcExport(cardRef.current, width, height, name, kind)
+      .catch((e) => console.error('[design-canvas] export failed:', e));
+  };
+
+  // Live drag-reorder: dragged card sticks to cursor; siblings slide into
+  // their would-be slots in real time via transforms. DOM order only
+  // changes on drop.
+  const onGripDown = (e) => {
+    e.preventDefault(); e.stopPropagation();
+    const me = ref.current;
+    // translateX is applied in local (pre-scale) space but pointer deltas and
+    // getBoundingClientRect().left are screen-space — divide by the viewport's
+    // current scale so the dragged card tracks the cursor at any zoom level.
+    const scale = me.getBoundingClientRect().width / me.offsetWidth || 1;
+    const peers = Array.from(document.querySelectorAll(`[data-dc-section="${sectionId}"] [data-dc-slot]`));
+    const homes = peers.map((el) => ({ el, id: el.dataset.dcSlot, x: el.getBoundingClientRect().left }));
+    const slotXs = homes.map((h) => h.x);
+    const startIdx = order.indexOf(id);
+    const startX = e.clientX;
+    let liveOrder = order.slice();
+    me.classList.add('dc-dragging');
+
+    const layout = () => {
+      for (const h of homes) {
+        if (h.id === id) continue;
+        const slot = liveOrder.indexOf(h.id);
+        h.el.style.transform = `translateX(${(slotXs[slot] - h.x) / scale}px)`;
+      }
+    };
+
+    const move = (ev) => {
+      const dx = ev.clientX - startX;
+      me.style.transform = `translateX(${dx / scale}px)`;
+      const cur = homes[startIdx].x + dx;
+      let nearest = 0, best = Infinity;
+      for (let i = 0; i < slotXs.length; i++) {
+        const d = Math.abs(slotXs[i] - cur);
+        if (d < best) { best = d; nearest = i; }
+      }
+      if (liveOrder.indexOf(id) !== nearest) {
+        liveOrder = order.filter((k) => k !== id);
+        liveOrder.splice(nearest, 0, id);
+        layout();
+      }
+    };
+
+    const up = () => {
+      document.removeEventListener('pointermove', move);
+      document.removeEventListener('pointerup', up);
+      const finalSlot = liveOrder.indexOf(id);
+      me.classList.remove('dc-dragging');
+      me.style.transform = `translateX(${(slotXs[finalSlot] - homes[startIdx].x) / scale}px)`;
+      // After the settle transition, kill transitions + clear transforms +
+      // commit the reorder in the same frame so there's no visual snap-back.
+      setTimeout(() => {
+        for (const h of homes) { h.el.style.transition = 'none'; h.el.style.transform = ''; }
+        if (liveOrder.join('|') !== order.join('|')) onReorder(liveOrder);
+        requestAnimationFrame(() => requestAnimationFrame(() => {
+          for (const h of homes) h.el.style.transition = '';
+        }));
+      }, 180);
+    };
+    document.addEventListener('pointermove', move);
+    document.addEventListener('pointerup', up);
+  };
+
+  return (
+    <div ref={ref} data-dc-slot={id} style={{ position: 'relative', flexShrink: 0 }}>
+      <div className="dc-header" data-noncommentable="" style={{ color: DC.label }} onPointerDown={(e) => e.stopPropagation()}>
+        <div className="dc-labelrow">
+          <div className="dc-grip" onPointerDown={onGripDown} title="Drag to reorder">
+            <svg width="9" height="13" viewBox="0 0 9 13" fill="currentColor"><circle cx="2" cy="2" r="1.1"/><circle cx="7" cy="2" r="1.1"/><circle cx="2" cy="6.5" r="1.1"/><circle cx="7" cy="6.5" r="1.1"/><circle cx="2" cy="11" r="1.1"/><circle cx="7" cy="11" r="1.1"/></svg>
+          </div>
+          <div className="dc-labeltext" onClick={onFocus} title="Click to focus">
+            <DCEditable value={label} onChange={onRename} onClick={(e) => e.stopPropagation()}
+              style={{ fontSize: 15, fontWeight: 500, color: DC.label, lineHeight: 1 }} />
+          </div>
+        </div>
+        <div className="dc-btns">
+          <div ref={menuRef} style={{ position: 'relative' }}>
+            <button className="dc-kebab" title="More" onClick={() => setMenuOpen((o) => !o)}>
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor"><circle cx="2.5" cy="6" r="1.1"/><circle cx="6" cy="6" r="1.1"/><circle cx="9.5" cy="6" r="1.1"/></svg>
+            </button>
+            {menuOpen && (
+              <div className="dc-menu" onPointerDown={(e) => e.stopPropagation()}>
+                <button onClick={() => doExport('png')}>Download PNG</button>
+                <button onClick={() => doExport('html')}>Download HTML</button>
+                <hr />
+                <button className="dc-danger"
+                  onClick={() => { if (confirming) { setMenuOpen(false); onDelete(); } else setConfirming(true); }}>
+                  {confirming ? 'Click again to delete' : 'Delete'}
+                </button>
+              </div>
+            )}
+          </div>
+          <button className="dc-expand" onClick={onFocus} title="Focus">
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"><path d="M7 1h4v4M5 11H1V7M11 1L7.5 4.5M1 11l3.5-3.5"/></svg>
+          </button>
+        </div>
+      </div>
+      <div ref={cardRef} className="dc-card"
+        style={{ borderRadius: 2, boxShadow: '0 1px 3px rgba(0,0,0,.08),0 4px 16px rgba(0,0,0,.06)', overflow: 'hidden', width, height, background: '#fff', ...style }}>
+        {children || <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#bbb', fontSize: 13, fontFamily: DC.font }}>{id}</div>}
+      </div>
+    </div>
+  );
 }
 
-function renderABC(rows) {
-  const counts = {A:0, B:0, C:0};
-  rows.forEach(r => counts[r.abc_class] = (counts[r.abc_class] || 0) + 1);
-  makeChart('chart-abc-pie', {
-    type: 'doughnut',
-    data: {
-      labels: ['A (топ 80%)', 'B (80–95%)', 'C (хвост)'],
-      datasets: [{
-        data: [counts.A, counts.B, counts.C],
-        backgroundColor: ['#00c853', '#ffb300', '#f44336'],
-        borderColor: '#1e1e1e',
-        borderWidth: 3,
-      }],
-    },
-    options: {
-      responsive: true, maintainAspectRatio: false,
-      cutout: '60%',
-      plugins: {
-        legend: { position: 'bottom', labels: { color: '#aaa', padding: 12 } },
-      },
-    },
+// Inline rename — commits on blur or Enter.
+function DCEditable({ value, onChange, style, tag = 'span', onClick }) {
+  const T = tag;
+  return (
+    <T className="dc-editable" contentEditable suppressContentEditableWarning
+      onClick={onClick}
+      onPointerDown={(e) => e.stopPropagation()}
+      onBlur={(e) => onChange && onChange(e.currentTarget.textContent)}
+      onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); e.currentTarget.blur(); } }}
+      style={style}>{value}</T>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────
+// Focus mode — overlay one artboard; ←/→ within section, ↑/↓ across
+// sections, Esc or backdrop click to exit.
+// ─────────────────────────────────────────────────────────────
+function DCFocusOverlay({ entry, sectionMeta, sectionOrder }) {
+  const ctx = React.useContext(DCCtx);
+  const { sectionId, artboard } = entry;
+  const sec = ctx.section(sectionId);
+  const meta = sectionMeta[sectionId];
+  const peers = meta.slotIds;
+  const aid = artboard.props.id ?? artboard.props.label;
+  const idx = peers.indexOf(aid);
+  const secIdx = sectionOrder.indexOf(sectionId);
+
+  const go = (d) => { const n = peers[(idx + d + peers.length) % peers.length]; if (n) ctx.setFocus(`${sectionId}/${n}`); };
+  const goSection = (d) => {
+    // Sections whose artboards are all deleted have slotIds:[] — step past
+    // them to the next non-empty section so ↑/↓ doesn't dead-end.
+    const n = sectionOrder.length;
+    for (let i = 1; i < n; i++) {
+      const ns = sectionOrder[(((secIdx + d * i) % n) + n) % n];
+      const first = sectionMeta[ns] && sectionMeta[ns].slotIds[0];
+      if (first) { ctx.setFocus(`${ns}/${first}`); return; }
+    }
+  };
+
+  React.useEffect(() => {
+    const k = (e) => {
+      if (e.key === 'ArrowLeft') { e.preventDefault(); go(-1); }
+      if (e.key === 'ArrowRight') { e.preventDefault(); go(1); }
+      if (e.key === 'ArrowUp') { e.preventDefault(); goSection(-1); }
+      if (e.key === 'ArrowDown') { e.preventDefault(); goSection(1); }
+    };
+    document.addEventListener('keydown', k);
+    return () => document.removeEventListener('keydown', k);
   });
 
-  document.getElementById('tbody-abc').innerHTML = rows.map(r => {
-    const cls = r.abc_class === 'A' ? 'badge-green' : r.abc_class === 'B' ? 'badge-yellow' : 'badge-red';
-    return `<tr>
-      <td>${r.name}</td>
-      <td>${fmtRub(r.profit_30d)}</td>
-      <td>${r.cumulative_pct}%</td>
-      <td><span class="badge ${cls}">${r.abc_class}</span></td>
-    </tr>`;
-  }).join('');
+  const { width = 260, height = 480, children } = artboard.props;
+  const [vp, setVp] = React.useState({ w: window.innerWidth, h: window.innerHeight });
+  React.useEffect(() => { const r = () => setVp({ w: window.innerWidth, h: window.innerHeight }); window.addEventListener('resize', r); return () => window.removeEventListener('resize', r); }, []);
+  const scale = Math.max(0.1, Math.min((vp.w - 200) / width, (vp.h - 260) / height, 2));
+
+  const [ddOpen, setDd] = React.useState(false);
+  const Arrow = ({ dir, onClick }) => (
+    <button onClick={(e) => { e.stopPropagation(); onClick(); }}
+      style={{ position: 'absolute', top: '50%', [dir]: 28, transform: 'translateY(-50%)',
+        border: 'none', background: 'rgba(255,255,255,.08)', color: 'rgba(255,255,255,.9)',
+        width: 44, height: 44, borderRadius: 22, fontSize: 18, cursor: 'pointer',
+        display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background .15s' }}
+      onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,.18)')}
+      onMouseLeave={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,.08)')}>
+      <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+        <path d={dir === 'left' ? 'M11 3L5 9l6 6' : 'M7 3l6 6-6 6'} /></svg>
+    </button>
+  );
+
+  // Portal to body so position:fixed is the real viewport regardless of any
+  // transform on DesignCanvas's ancestors (including the canvas zoom itself).
+  return ReactDOM.createPortal(
+    <div onClick={() => ctx.setFocus(null)}
+      onWheel={(e) => e.preventDefault()}
+      style={{ position: 'fixed', inset: 0, zIndex: 100, background: 'rgba(24,20,16,.6)', backdropFilter: 'blur(14px)',
+        fontFamily: DC.font, color: '#fff' }}>
+
+      {/* top bar: section dropdown (left) · close (right) */}
+      <div onClick={(e) => e.stopPropagation()}
+        style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 72, display: 'flex', alignItems: 'flex-start', padding: '16px 20px 0', gap: 16 }}>
+        <div style={{ position: 'relative' }}>
+          <button onClick={() => setDd((o) => !o)}
+            style={{ border: 'none', background: 'transparent', color: '#fff', cursor: 'pointer', padding: '6px 8px',
+              borderRadius: 6, textAlign: 'left', fontFamily: 'inherit' }}>
+            <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span style={{ fontSize: 18, fontWeight: 600, letterSpacing: -0.3 }}>{meta.title}</span>
+              <svg width="11" height="11" viewBox="0 0 11 11" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" style={{ opacity: .7 }}><path d="M2 4l3.5 3.5L9 4"/></svg>
+            </span>
+            {meta.subtitle && <span style={{ display: 'block', fontSize: 13, opacity: .6, fontWeight: 400, marginTop: 2 }}>{meta.subtitle}</span>}
+          </button>
+          {ddOpen && (
+            <div style={{ position: 'absolute', top: '100%', left: 0, marginTop: 4, background: '#2a251f', borderRadius: 8,
+              boxShadow: '0 8px 32px rgba(0,0,0,.4)', padding: 4, minWidth: 200, zIndex: 10 }}>
+              {sectionOrder.filter((sid) => sectionMeta[sid].slotIds.length).map((sid) => (
+                <button key={sid} onClick={() => { setDd(false); const f = sectionMeta[sid].slotIds[0]; if (f) ctx.setFocus(`${sid}/${f}`); }}
+                  style={{ display: 'block', width: '100%', textAlign: 'left', border: 'none', cursor: 'pointer',
+                    background: sid === sectionId ? 'rgba(255,255,255,.1)' : 'transparent', color: '#fff',
+                    padding: '8px 12px', borderRadius: 5, fontSize: 14, fontWeight: sid === sectionId ? 600 : 400, fontFamily: 'inherit' }}>
+                  {sectionMeta[sid].title}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+        <div style={{ flex: 1 }} />
+        <button onClick={() => ctx.setFocus(null)}
+          onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,.12)')}
+          onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
+          style={{ border: 'none', background: 'transparent', color: 'rgba(255,255,255,.7)', width: 32, height: 32,
+            borderRadius: 16, fontSize: 20, cursor: 'pointer', lineHeight: 1, transition: 'background .12s' }}>×</button>
+      </div>
+
+      {/* card centered, label + index below — only the card itself stops
+          propagation so any backdrop click (including the margins around
+          the card) exits focus */}
+      <div
+        style={{ position: 'absolute', top: 64, bottom: 56, left: 100, right: 100, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 16 }}>
+        <div onClick={(e) => e.stopPropagation()} style={{ width: width * scale, height: height * scale, position: 'relative' }}>
+          <div style={{ width, height, transform: `scale(${scale})`, transformOrigin: 'top left', background: '#fff', borderRadius: 2, overflow: 'hidden',
+            boxShadow: '0 20px 80px rgba(0,0,0,.4)' }}>
+            {children || <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#bbb' }}>{aid}</div>}
+          </div>
+        </div>
+        <div onClick={(e) => e.stopPropagation()} style={{ fontSize: 14, fontWeight: 500, opacity: .85, textAlign: 'center' }}>
+          {(sec.labels || {})[aid] ?? artboard.props.label}
+          <span style={{ opacity: .5, marginLeft: 10, fontVariantNumeric: 'tabular-nums' }}>{idx + 1} / {peers.length}</span>
+        </div>
+      </div>
+
+      <Arrow dir="left" onClick={() => go(-1)} />
+      <Arrow dir="right" onClick={() => go(1)} />
+
+      {/* dots */}
+      <div onClick={(e) => e.stopPropagation()}
+        style={{ position: 'absolute', bottom: 20, left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: 8 }}>
+        {peers.map((p, i) => (
+          <button key={p} onClick={() => ctx.setFocus(`${sectionId}/${p}`)}
+            style={{ border: 'none', padding: 0, cursor: 'pointer', width: 6, height: 6, borderRadius: 3,
+              background: i === idx ? '#fff' : 'rgba(255,255,255,.3)' }} />
+        ))}
+      </div>
+    </div>,
+    document.body,
+  );
 }
 
-function showProductView(v) {
-  state.productView = v;
-  document.getElementById('view-profit').style.display = v === 'profit' ? 'flex' : 'none';
-  document.getElementById('view-abc').style.display    = v === 'abc'    ? 'flex' : 'none';
-  document.querySelectorAll('#section-products .controls .btn').forEach((b, i) => {
-    b.classList.toggle('active', (i === 0 && v === 'profit') || (i === 1 && v === 'abc'));
-  });
+// ─────────────────────────────────────────────────────────────
+// Post-it — absolute-positioned sticky note
+// ─────────────────────────────────────────────────────────────
+function DCPostIt({ children, top, left, right, bottom, rotate = -2, width = 180 }) {
+  return (
+    <div style={{
+      position: 'absolute', top, left, right, bottom, width,
+      background: DC.postitBg, padding: '14px 16px',
+      fontFamily: '"Comic Sans MS", "Marker Felt", "Segoe Print", cursive',
+      fontSize: 14, lineHeight: 1.4, color: DC.postitText,
+      boxShadow: '0 2px 8px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.08)',
+      transform: `rotate(${rotate}deg)`,
+      zIndex: 5,
+    }}>{children}</div>
+  );
 }
 
-function filterProducts() {
-  if (state.data.products) renderProfitTable(state.data.products);
+Object.assign(window, { DesignCanvas, DCSection, DCArtboard, DCPostIt });
+
+
+</script>
+<script type="text/babel" data-presets="react">
+/* === icons === */
+/* Tiny stroke icons — Lucide-style, 1.6px stroke. Keep simple. */
+const Ico = ({ d, size = 16, fill, sw = 1.7 }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill={fill || 'none'} stroke="currentColor" strokeWidth={sw} strokeLinecap="round" strokeLinejoin="round">
+    {d}
+  </svg>
+);
+
+const I = {
+  finance: <Ico d={<><path d="M3 17V7a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"/><path d="M3 10h18"/><circle cx="8" cy="14.5" r="1.2"/></>} />,
+  goods:   <Ico d={<><path d="M21 8 12 3 3 8l9 5 9-5Z"/><path d="M3 8v8l9 5 9-5V8"/><path d="M12 13v8"/></>} />,
+  stock:   <Ico d={<><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V4h8v3"/><path d="M3 12h18"/></>} />,
+  cards:   <Ico d={<><rect x="3" y="5" width="14" height="14" rx="3"/><rect x="7" y="9" width="14" height="11" rx="3"/></>} />,
+  vs:      <Ico d={<><path d="M4 7h7l-2-2"/><path d="M20 17h-7l2 2"/><path d="M4 7v0"/></>} />,
+  trend:   <Ico d={<><path d="M3 17l6-6 4 4 8-9"/><path d="M14 6h7v7"/></>} />,
+  compare: <Ico d={<><path d="M4 6h7M4 12h11M4 18h7"/><path d="M14 4v16"/></>} />,
+  top:     <Ico d={<><path d="M12 3l2.5 5 5.5.8-4 3.9 1 5.5L12 15.8 6.9 18.2 8 12.7 4 8.8l5.5-.8Z"/></>} />,
+  cats:    <Ico d={<><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></>} />,
+  funnel:  <Ico d={<><path d="M3 5h18l-7 9v6l-4-2v-4Z"/></>} />,
+
+  download: <Ico d={<><path d="M12 4v11"/><path d="M7 11l5 5 5-5"/><path d="M5 20h14"/></>} />,
+  refresh:  <Ico d={<><path d="M3 12a9 9 0 0 1 15.5-6.3L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-15.5 6.3L3 16"/><path d="M3 21v-5h5"/></>} />,
+  search:   <Ico d={<><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></>} />,
+  filter:   <Ico d={<><path d="M3 5h18l-7 9v5l-4-2v-3Z"/></>} />,
+  bell:     <Ico d={<><path d="M6 17V11a6 6 0 0 1 12 0v6"/><path d="M4 17h16"/><path d="M10 21h4"/></>} />,
+  chevDn:   <Ico d={<><path d="m6 9 6 6 6-6"/></>} sw={2} />,
+
+  up:   <Ico d={<><path d="m6 14 6-6 6 6"/></>} sw={2.5} size={11} />,
+  dn:   <Ico d={<><path d="m6 10 6 6 6-6"/></>} sw={2.5} size={11} />,
+
+  cash:   <Ico d={<><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="3"/></>} />,
+  wallet: <Ico d={<><path d="M3 7a2 2 0 0 1 2-2h12v4"/><path d="M3 7v10a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-3"/><circle cx="17" cy="14" r="1.5"/></>} />,
+  box:    <Ico d={<><path d="M21 8 12 3 3 8l9 5 9-5Z"/><path d="M3 8v8l9 5 9-5V8"/></>} />,
+  pct:    <Ico d={<><circle cx="7" cy="7" r="2"/><circle cx="17" cy="17" r="2"/><path d="M19 5 5 19"/></>} />,
+  alert:  <Ico d={<><path d="M12 3 2 20h20Z"/><path d="M12 10v4M12 17v.5"/></>} />,
+  sku:    <Ico d={<><path d="M4 6v12M8 6v12M12 6v12M16 6v12M20 6v12"/></>} sw={1.4} />,
+
+  arrowR: <Ico d={<><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></>} sw={2} />,
+};
+window.I = I;
+
+</script>
+<script type="text/babel" data-presets="react">
+/* === shared === */
+/* Shared dashboard chrome — Sidebar, Topbar, KPI card */
+const { useState } = React;
+
+/* ─── Sparkline ─── */
+function Sparkline({ data, color = '#ff6a1a', fill = true, w = 92, h = 22 }) {
+  const max = Math.max(...data), min = Math.min(...data);
+  const span = max - min || 1;
+  const dx = w / (data.length - 1);
+  const pts = data.map((v, i) => [i * dx, h - ((v - min) / span) * (h - 4) - 2]);
+  const line = pts.map((p, i) => `${i ? 'L' : 'M'}${p[0].toFixed(1)},${p[1].toFixed(1)}`).join(' ');
+  const area = `${line} L${w},${h} L0,${h} Z`;
+  const gradId = 'sg' + Math.random().toString(36).slice(2, 7);
+  return (
+    <svg width={w} height={h} viewBox={`0 0 ${w} ${h}`} style={{ display: 'block' }}>
+      {fill && (
+        <>
+          <defs>
+            <linearGradient id={gradId} x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor={color} stopOpacity="0.35" />
+              <stop offset="100%" stopColor={color} stopOpacity="0" />
+            </linearGradient>
+          </defs>
+          <path d={area} fill={`url(#${gradId})`} />
+        </>
+      )}
+      <path d={line} stroke={color} strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+      <circle cx={pts[pts.length - 1][0]} cy={pts[pts.length - 1][1]} r="2" fill={color} />
+    </svg>
+  );
+}
+window.Sparkline = Sparkline;
+
+/* ─── Sidebar ─── */
+function Sidebar({ active }) {
+  const items = [
+    { k: 'finance',  l: 'Финансы',    ico: I.finance },
+    { k: 'goods',    l: 'Товары',     ico: I.goods },
+    { k: 'stock',    l: 'Склад',      ico: I.stock,  badge: '5' },
+    { k: 'cards',    l: 'Карточки',   ico: I.cards },
+  ];
+  const items2 = [
+    { k: 'vs',       l: 'WB vs Ozon', ico: I.vs },
+    { k: 'trends',   l: 'Тренды',     ico: I.trend },
+    { k: 'compare',  l: 'Сравнение',  ico: I.compare },
+  ];
+  const items3 = [
+    { k: 'top',      l: 'Топ / Флоп', ico: I.top },
+    { k: 'cats',     l: 'Категории',  ico: I.cats },
+    { k: 'funnel',   l: 'Воронка',    ico: I.funnel },
+  ];
+
+  const renderItem = it => (
+    <div key={it.k} className={`nav-item ${active === it.k ? 'active' : ''}`}>
+      <div className="nav-ico">{it.ico}</div>
+      <span>{it.l}</span>
+      {it.badge && <span className="nav-badge">{it.badge}</span>}
+    </div>
+  );
+
+  return (
+    <aside className="sidebar">
+      <div className="brand">
+        <div className="brand-mark">М</div>
+        <div>
+          <div className="brand-title">Маркет<span style={{ color: 'var(--orange-hi)' }}>Лупа</span></div>
+          <div className="brand-sub">WB + Ozon analytics</div>
+        </div>
+      </div>
+
+      <div>
+        <div className="nav-group-label">Обзор</div>
+        <div className="nav">{items.map(renderItem)}</div>
+      </div>
+      <div className="sidebar-divider" />
+      <div>
+        <div className="nav-group-label">Маркетплейсы</div>
+        <div className="nav">{items2.map(renderItem)}</div>
+      </div>
+      <div className="sidebar-divider" />
+      <div>
+        <div className="nav-group-label">Аналитика</div>
+        <div className="nav">{items3.map(renderItem)}</div>
+      </div>
+
+      <div className="side-footer">
+        <div className="sync-row">
+          <div className="sync-status">
+            <span className="sync-dot" />
+            Синхронизировано
+          </div>
+          <span className="sync-time">14:32</span>
+        </div>
+        <div className="sync-btn">
+          <span style={{ transform: 'translateY(1px)' }}>{I.refresh}</span>
+          Обновить сейчас
+        </div>
+      </div>
+    </aside>
+  );
+}
+window.Sidebar = Sidebar;
+
+/* ─── Topbar ─── */
+function Topbar({ title, crumb, period = '30д' }) {
+  return (
+    <div className="topbar">
+      <div className="topbar-left">
+        <div className="page-title">{title}</div>
+        {crumb && <div className="crumb">{crumb}</div>}
+      </div>
+      <div className="topbar-right">
+        <div className="period">
+          {['7д', '14д', '30д', '90д'].map(p => (
+            <button key={p} className={p === period ? 'active' : ''}>{p}</button>
+          ))}
+        </div>
+        <button className="btn">
+          {I.filter}
+          Фильтры
+        </button>
+        <button className="btn orange-out">
+          {I.download}
+          Экспорт CSV
+        </button>
+        <button className="btn solid">
+          <span className="spin" style={{ display: 'inline-flex' }}>{I.refresh}</span>
+          Синхронизация
+        </button>
+      </div>
+    </div>
+  );
+}
+window.Topbar = Topbar;
+
+/* ─── KPI card ─── */
+function Kpi({ accent = 'orange', label, value, unit, delta, deltaDir = 'up', sub, sparkData, sparkColor, ico }) {
+  const cls = `kpi ${accent}`;
+  const deltaCls = deltaDir === 'up' ? 'up' : deltaDir === 'down' ? 'down' : 'flat';
+  return (
+    <div className={cls}>
+      <div className="kpi-head">
+        <div className="kpi-label">{label}</div>
+        <div className="kpi-ico">{ico}</div>
+      </div>
+      <div className="kpi-value">
+        <span>{value}</span>
+        {unit && <span className="unit">{unit}</span>}
+      </div>
+      <div className="kpi-foot">
+        {delta && (
+          <span className={`delta ${deltaCls}`}>
+            {deltaDir === 'up' ? I.up : deltaDir === 'down' ? I.dn : null}
+            {delta}
+          </span>
+        )}
+        {sparkData ? (
+          <div className="kpi-trend">
+            <Sparkline data={sparkData} color={sparkColor || (deltaCls === 'down' ? '#ff5b5b' : '#ff6a1a')} />
+          </div>
+        ) : (
+          <span className="kpi-sub">{sub}</span>
+        )}
+      </div>
+    </div>
+  );
+}
+window.Kpi = Kpi;
+
+</script>
+<script type="text/babel" data-presets="react">
+/* === finance === */
+/* ─── Finance screen ─── */
+function FinanceScreen() {
+  return (
+    <div className="app">
+      <Sidebar active="finance" />
+      <main className="main">
+        <Topbar
+          title="Финансы"
+          crumb={<><b>Дашборд</b> · 1 — 30 апр 2026</>}
+          period="30д"
+        />
+        <div className="content">
+          {/* KPI row */}
+          <div className="kpi-row">
+            <Kpi accent="orange" label="Выручка 30д" value="₽4 281 540" delta="12.4%" deltaDir="up"
+              sparkData={[42,46,44,49,52,50,55,58,57,62,68,72]} ico={I.cash} />
+            <Kpi accent="green" label="Прибыль 30д" value="₽1 364 290" delta="8.1%" deltaDir="up"
+              sparkData={[28,30,29,33,35,34,38,40,39,42,45,49]} sparkColor="#28d17c" ico={I.wallet} />
+            <Kpi accent="blue" label="Заказы" value="3 942" delta="5.6%" deltaDir="up"
+              sparkData={[100,108,112,118,115,124,130,128,135,140,148,152]} sparkColor="#5aa9ff" ico={I.box} />
+            <Kpi accent="violet" label="Маржа" value="31.9" unit="%" delta="0.8 пп" deltaDir="up"
+              sparkData={[28,29,30,30,31,30,31,32,31,32,32,32]} sparkColor="#b07cff" ico={I.pct} />
+            <Kpi accent="red"   label="Срочно докупить" value="5" delta="2 нов." deltaDir="down"
+              sparkData={[1,2,2,1,3,3,4,4,3,4,5,5]} sparkColor="#ff5b5b" ico={I.alert} />
+            <Kpi accent="gray"  label="Всего SKU" value="248" delta="3 нов." deltaDir="up"
+              sub="активные карточки" ico={I.sku} />
+          </div>
+
+          {/* Charts row */}
+          <div className="grid-charts">
+            <RevenueChart />
+            <PlatformChart />
+          </div>
+
+          {/* Lower row: breakdown + top categories */}
+          <div className="grid-2">
+            <PnLPanel />
+            <TopCatsPanel />
+          </div>
+        </div>
+      </main>
+    </div>
+  );
+}
+window.FinanceScreen = FinanceScreen;
+
+/* ─── Revenue area chart (SVG) ─── */
+function RevenueChart() {
+  const W = 680, H = 260, PAD = { l: 40, r: 14, t: 16, b: 28 };
+  const days = 30;
+  // Pseudo-deterministic series
+  const seed = i => Math.sin(i * 1.7) * 0.4 + Math.cos(i * 0.6) * 0.25;
+  const revenue = Array.from({ length: days }, (_, i) => 110 + i * 1.8 + seed(i) * 18 + (i > 22 ? (i - 22) * 4 : 0));
+  const profit  = revenue.map(v => v * (0.30 + Math.sin(v / 12) * 0.04));
+
+  const max = Math.max(...revenue) * 1.08;
+  const min = 0;
+  const x = i => PAD.l + (i / (days - 1)) * (W - PAD.l - PAD.r);
+  const y = v => PAD.t + (1 - (v - min) / (max - min)) * (H - PAD.t - PAD.b);
+
+  const path = (arr) => arr.map((v, i) => `${i ? 'L' : 'M'}${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(' ');
+  const area = (arr) => `${path(arr)} L${x(days - 1)},${H - PAD.b} L${PAD.l},${H - PAD.b} Z`;
+
+  const xTicks = [0, 5, 10, 15, 20, 25, 29];
+  const yTicks = [0, max * 0.25, max * 0.5, max * 0.75, max];
+
+  // Highlight day 24 (peak-ish)
+  const hi = 24;
+  const hiVal = revenue[hi];
+
+  return (
+    <div className="panel">
+      <div className="panel-head">
+        <div>
+          <div className="panel-title">Выручка и прибыль по дням</div>
+          <div className="panel-sub">Апрель 2026 · все площадки</div>
+        </div>
+        <div className="legend">
+          <span className="legend-item"><span className="legend-dot" style={{ background: '#ff6a1a' }} /> Выручка</span>
+          <span className="legend-item"><span className="legend-dot" style={{ background: '#28d17c' }} /> Прибыль</span>
+        </div>
+      </div>
+
+      <svg viewBox={`0 0 ${W} ${H}`} width="100%" height={H} style={{ display: 'block' }}>
+        <defs>
+          <linearGradient id="revGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%"   stopColor="#ff6a1a" stopOpacity="0.30" />
+            <stop offset="100%" stopColor="#ff6a1a" stopOpacity="0" />
+          </linearGradient>
+          <linearGradient id="prfGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%"   stopColor="#28d17c" stopOpacity="0.22" />
+            <stop offset="100%" stopColor="#28d17c" stopOpacity="0" />
+          </linearGradient>
+        </defs>
+        {/* y grid */}
+        {yTicks.map((v, i) => (
+          <g key={i}>
+            <line x1={PAD.l} x2={W - PAD.r} y1={y(v)} y2={y(v)} stroke="#1f1f23" strokeDasharray="2 4" />
+            <text x={PAD.l - 8} y={y(v) + 3} textAnchor="end" fill="#5a5a60" fontSize="10" fontFamily="JetBrains Mono">
+              {(v / 1000).toFixed(1).replace('.', ',')}M
+            </text>
+          </g>
+        ))}
+        {/* x ticks */}
+        {xTicks.map(i => (
+          <text key={i} x={x(i)} y={H - 8} textAnchor="middle" fill="#5a5a60" fontSize="10" fontFamily="JetBrains Mono">
+            {String(i + 1).padStart(2, '0')}
+          </text>
+        ))}
+        {/* areas + lines */}
+        <path d={area(revenue)} fill="url(#revGrad)" />
+        <path d={area(profit)}  fill="url(#prfGrad)" />
+        <path d={path(revenue)} fill="none" stroke="#ff6a1a" strokeWidth="2" strokeLinecap="round" />
+        <path d={path(profit)}  fill="none" stroke="#28d17c" strokeWidth="2" strokeLinecap="round" />
+
+        {/* highlight tooltip */}
+        <line x1={x(hi)} x2={x(hi)} y1={PAD.t} y2={H - PAD.b} stroke="#ff6a1a" strokeWidth="1" strokeDasharray="3 3" opacity="0.5" />
+        <circle cx={x(hi)} cy={y(hiVal)} r="5" fill="#0b0b0c" stroke="#ff6a1a" strokeWidth="2" />
+        <circle cx={x(hi)} cy={y(profit[hi])} r="5" fill="#0b0b0c" stroke="#28d17c" strokeWidth="2" />
+
+        <g transform={`translate(${x(hi) + 12}, ${y(hiVal) - 56})`}>
+          <rect width="138" height="58" rx="12" fill="#1c1c1f" stroke="rgba(255,106,26,0.5)" />
+          <text x="12" y="18" fill="#8d8d93" fontSize="10" letterSpacing="0.8">25 АПР · ПТ</text>
+          <text x="12" y="36" fill="#f3f1ee" fontSize="13" fontWeight="700" fontFamily="JetBrains Mono">
+            ₽ 198,420
+          </text>
+          <text x="12" y="51" fill="#28d17c" fontSize="11" fontWeight="700" fontFamily="JetBrains Mono">
+            прибыль ₽ 63,140
+          </text>
+        </g>
+      </svg>
+    </div>
+  );
 }
 
-// ═══════════════ STOCK ═══════════════
-async function loadStock() {
-  try {
-    state.data.stock = await apiFetch('/api/reorder');
-    renderStock();
-  } catch(e) { console.error('Stock error', e); }
+/* ─── WB vs Ozon two-line chart ─── */
+function PlatformChart() {
+  const W = 460, H = 260, PAD = { l: 40, r: 14, t: 16, b: 28 };
+  const days = 30;
+  const wb   = Array.from({ length: days }, (_, i) => 60 + i * 0.9 + Math.sin(i * 0.7) * 12);
+  const ozon = Array.from({ length: days }, (_, i) => 38 + i * 1.4 + Math.sin(i * 0.5 + 1) * 9);
+  const max = Math.max(...wb, ...ozon) * 1.1;
+  const x = i => PAD.l + (i / (days - 1)) * (W - PAD.l - PAD.r);
+  const y = v => PAD.t + (1 - v / max) * (H - PAD.t - PAD.b);
+  const path = arr => arr.map((v, i) => `${i ? 'L' : 'M'}${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(' ');
+
+  const total = (arr) => Math.round(arr.reduce((a, b) => a + b, 0));
+  return (
+    <div className="panel">
+      <div className="panel-head">
+        <div>
+          <div className="panel-title">WB vs Ozon</div>
+          <div className="panel-sub">Динамика заказов, шт/день</div>
+        </div>
+        <div className="legend">
+          <span className="legend-item"><span className="legend-dot" style={{ background: '#ff3d8b' }} /> WB</span>
+          <span className="legend-item"><span className="legend-dot" style={{ background: '#5aa9ff' }} /> Ozon</span>
+        </div>
+      </div>
+
+      <svg viewBox={`0 0 ${W} ${H}`} width="100%" height={H} style={{ display: 'block' }}>
+        <defs>
+          <linearGradient id="wbGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#ff3d8b" stopOpacity="0.22" />
+            <stop offset="100%" stopColor="#ff3d8b" stopOpacity="0" />
+          </linearGradient>
+          <linearGradient id="ozGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#5aa9ff" stopOpacity="0.18" />
+            <stop offset="100%" stopColor="#5aa9ff" stopOpacity="0" />
+          </linearGradient>
+        </defs>
+        {[0, 0.25, 0.5, 0.75, 1].map((p, i) => {
+          const v = max * p;
+          return (
+            <g key={i}>
+              <line x1={PAD.l} x2={W - PAD.r} y1={y(v)} y2={y(v)} stroke="#1f1f23" strokeDasharray="2 4" />
+              <text x={PAD.l - 8} y={y(v) + 3} textAnchor="end" fill="#5a5a60" fontSize="10" fontFamily="JetBrains Mono">
+                {Math.round(v)}
+              </text>
+            </g>
+          );
+        })}
+        {[0, 7, 14, 21, 29].map(i => (
+          <text key={i} x={x(i)} y={H - 8} textAnchor="middle" fill="#5a5a60" fontSize="10" fontFamily="JetBrains Mono">
+            {String(i + 1).padStart(2, '0')}
+          </text>
+        ))}
+        <path d={`${path(wb)} L${x(days - 1)},${H - PAD.b} L${PAD.l},${H - PAD.b} Z`} fill="url(#wbGrad)" />
+        <path d={`${path(ozon)} L${x(days - 1)},${H - PAD.b} L${PAD.l},${H - PAD.b} Z`} fill="url(#ozGrad)" />
+        <path d={path(wb)}   stroke="#ff3d8b" strokeWidth="2" fill="none" strokeLinecap="round" />
+        <path d={path(ozon)} stroke="#5aa9ff" strokeWidth="2" fill="none" strokeLinecap="round" />
+      </svg>
+
+      <div style={{ display: 'flex', gap: 10, marginTop: 6 }}>
+        <div className="stat-pill">
+          <span className="platform-chip wb" style={{ background: 'transparent', border: 0, padding: 0 }}>
+            <span className="swatch">W</span>
+          </span>
+          <span className="k">WB</span>
+          <span className="v">{total(wb).toLocaleString('ru')}</span>
+          <span className="green-t mono" style={{ fontSize: 11 }}>+14.2%</span>
+        </div>
+        <div className="stat-pill">
+          <span className="platform-chip ozon" style={{ background: 'transparent', border: 0, padding: 0 }}>
+            <span className="swatch">O</span>
+          </span>
+          <span className="k">Ozon</span>
+          <span className="v">{total(ozon).toLocaleString('ru')}</span>
+          <span className="green-t mono" style={{ fontSize: 11 }}>+22.7%</span>
+        </div>
+      </div>
+    </div>
+  );
 }
 
-function renderStock() {
-  const rows = state.data.stock || [];
-  const f = state.stockFilter;
-  const filtered = rows.filter(r => {
-    if (f === 'urgent')  return r.status === 'СРОЧНО';
-    if (f === 'reorder') return r.status === 'ДОКУПИТЬ';
-    if (f === 'ok')      return r.status === 'OK';
-    return true;
-  });
-  document.getElementById('stock-count').textContent =
-    `Показано: ${filtered.length} из ${rows.length}`;
+/* ─── P&L breakdown panel ─── */
+function PnLPanel() {
+  const rows = [
+    { name: 'Себестоимость',       v: '₽ 2 089 320', pct: 48.8, color: '#5a5a60' },
+    { name: 'Комиссия площадки',   v: '₽ 612 080',   pct: 14.3, color: '#5aa9ff' },
+    { name: 'Логистика и FBO',     v: '₽ 354 220',   pct: 8.3,  color: '#ff3d8b' },
+    { name: 'Реклама и продвижение', v: '₽ 198 540', pct: 4.6,  color: '#ffb648' },
+    { name: 'Возвраты и брак',     v: '₽ 63 090',    pct: 1.5,  color: '#ff5b5b' },
+    { name: 'Чистая прибыль',      v: '₽ 1 364 290', pct: 31.9, color: '#28d17c', bold: true },
+  ];
+  return (
+    <div className="panel">
+      <div className="panel-head">
+        <div>
+          <div className="panel-title">Структура P&L</div>
+          <div className="panel-sub">Доли в выручке · апрель</div>
+        </div>
+        <div className="stat-pill">
+          <span className="k">Total</span>
+          <span className="v">₽ 4 281 540</span>
+        </div>
+      </div>
 
-  document.getElementById('tbody-stock').innerHTML = filtered.map(r => {
-    const badge = r.status === 'СРОЧНО'   ? '<span class="badge badge-red">🔴 СРОЧНО</span>'
-                : r.status === 'ДОКУПИТЬ' ? '<span class="badge badge-orange">⚠️ ДОКУПИТЬ</span>'
-                :                           '<span class="badge badge-green">✅ OK</span>';
-    const daysColor = r.days_of_stock == null ? '' :
-                      r.days_of_stock < 7 ? 'style="color:var(--red);font-weight:700"' :
-                      r.days_of_stock < 14 ? 'style="color:var(--yellow);font-weight:600"' : '';
-    return `<tr>
-      <td>${r.name}</td>
-      <td style="font-family:monospace;font-size:12px;color:var(--muted)">${r.sku}</td>
-      <td><span class="badge ${r.source==='wb'?'badge-blue':'badge-yellow'}">${r.source.toUpperCase()}</span></td>
-      <td>${fmt(r.stock_qty)}</td>
-      <td>${r.avg_daily_sales != null ? Number(r.avg_daily_sales).toFixed(1) : '—'}</td>
-      <td ${daysColor}>${r.days_of_stock != null ? r.days_of_stock : '—'}</td>
-      <td>${badge}</td>
-    </tr>`;
-  }).join('') || '<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:30px">Нет данных</td></tr>';
+      <div className="share-bar" style={{ marginBottom: 18, height: 10 }}>
+        {rows.map((r, i) => <span key={i} style={{ width: `${r.pct}%`, background: r.color }} />)}
+      </div>
+
+      {rows.map((r, i) => (
+        <div className="brk-row" key={i}>
+          <span style={{ width: 8, height: 8, borderRadius: 3, background: r.color, flex: 'none' }} />
+          <span className="brk-name" style={{ fontWeight: r.bold ? 700 : 500 }}>{r.name}</span>
+          <span className="brk-bar"><span style={{ width: `${(r.pct / 50) * 100}%`, background: r.color }} /></span>
+          <span className="brk-val">{r.v}</span>
+          <span className="brk-val mono" style={{ width: 50, color: r.bold ? 'var(--green)' : 'var(--text-mute)' }}>
+            {r.pct.toFixed(1)}%
+          </span>
+        </div>
+      ))}
+    </div>
+  );
 }
 
-// ═══════════════ CARDS ═══════════════
-async function loadCards() {
-  try {
-    state.data.cards = await apiFetch(`/api/cards?days=${state.cardsDays}`);
-    renderCards();
-  } catch(e) { console.error('Cards error', e); }
+/* ─── Top categories ─── */
+function TopCatsPanel() {
+  const cats = [
+    { name: 'Дом и кухня',   sku: 64, rev: 1240, share: 29, color: '#ff6a1a' },
+    { name: 'Красота',        sku: 38, rev: 902,  share: 21, color: '#ff3d8b' },
+    { name: 'Электроника',    sku: 22, rev: 743,  share: 17, color: '#5aa9ff' },
+    { name: 'Одежда',         sku: 48, rev: 612,  share: 14, color: '#b07cff' },
+    { name: 'Спорт',          sku: 30, rev: 458,  share: 11, color: '#28d17c' },
+    { name: 'Прочее',         sku: 46, rev: 326,  share: 8,  color: '#5a5a60' },
+  ];
+  return (
+    <div className="panel">
+      <div className="panel-head">
+        <div>
+          <div className="panel-title">Топ категорий</div>
+          <div className="panel-sub">По выручке · 30 дней</div>
+        </div>
+        <span className="btn ghost" style={{ padding: '6px 10px', fontSize: 11 }}>Все →</span>
+      </div>
+
+      {cats.map((c, i) => (
+        <div className="brk-row" key={i}>
+          <span style={{
+            width: 26, height: 26, borderRadius: 9,
+            background: `${c.color}22`, color: c.color,
+            display: 'grid', placeItems: 'center', flex: 'none',
+            fontFamily: 'JetBrains Mono', fontSize: 11, fontWeight: 800,
+          }}>{String(i + 1).padStart(2, '0')}</span>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontSize: 12.5, fontWeight: 600 }}>{c.name}</div>
+            <div className="product-sub">{c.sku} SKU · доля {c.share}%</div>
+          </div>
+          <span className="brk-bar"><span style={{ width: `${c.share * 3}%`, background: c.color }} /></span>
+          <span className="brk-val">₽ {c.rev}k</span>
+        </div>
+      ))}
+    </div>
+  );
 }
 
-function renderCards() {
-  const rows = state.data.cards || [];
-  const search = (document.getElementById('card-search').value || '').toLowerCase();
-  const filtered = rows.filter(r => !search || (r.name||'').toLowerCase().includes(search));
+</script>
+<script type="text/babel" data-presets="react">
+/* === stock === */
+/* ─── Stock screen ─── */
+function StockScreen() {
+  return (
+    <div className="app">
+      <Sidebar active="stock" />
+      <main className="main">
+        <Topbar
+          title="Склад"
+          crumb={<><b>Остатки и поставки</b> · 248 SKU</>}
+          period="30д"
+        />
+        <div className="content">
+          <div className="kpi-row">
+            <Kpi accent="red" label="Срочно докупить" value="5" delta="2 нов." deltaDir="up"
+              sparkData={[1,2,2,1,3,3,4,4,3,4,5,5]} sparkColor="#ff5b5b" ico={I.alert} />
+            <Kpi accent="orange" label="Докупить" value="12" delta="3 нов." deltaDir="up"
+              sparkData={[6,8,9,8,10,9,11,10,11,12,12,12]} ico={I.box} />
+            <Kpi accent="green" label="OK в наличии" value="218" delta="–" deltaDir="flat"
+              sparkData={[210,212,214,215,217,216,218,219,218,219,218,218]} sparkColor="#28d17c" ico={I.sku} />
+            <Kpi accent="blue"  label="В пути с фабрики" value="13" delta="2 партии" deltaDir="up"
+              sparkData={[4,6,6,8,8,10,11,11,12,12,13,13]} sparkColor="#5aa9ff" ico={I.box} />
+            <Kpi accent="violet" label="Сред. дней запаса" value="22" unit="дн"
+              delta="3 дн" deltaDir="down" sparkData={[28,27,26,26,25,24,24,23,23,22,22,22]} sparkColor="#b07cff" ico={I.pct} />
+            <Kpi accent="gray" label="Заморожено в товаре" value="₽ 1.84M"
+              delta="6.2%" deltaDir="down" sparkData={[2.1,2.0,1.95,1.9,1.95,1.92,1.88,1.85,1.84,1.84,1.85,1.84]} sparkColor="#8d8d93" ico={I.cash} />
+          </div>
 
-  // Charts - top 10 by views
-  const top10 = [...rows].sort((a,b) => (b.views||0)-(a.views||0)).slice(0,10);
-  makeChart('chart-ctr', {
-    type: 'bar',
-    data: {
-      labels: top10.map(r => truncate(r.name, 18)),
-      datasets: [{
-        data: top10.map(r => r.ctr_pct || 0),
-        backgroundColor: top10.map(r => {
-          const v = r.ctr_pct || 0;
-          return v >= 9 ? 'rgba(0,200,83,.7)' : v >= 6 ? 'rgba(255,179,0,.7)' : 'rgba(244,67,54,.7)';
-        }),
-        borderRadius: 4,
-      }],
-    },
-    options: {
-      responsive: true, maintainAspectRatio: false, indexAxis: 'y',
-      plugins: { legend: { display: false } },
-      scales: {
-        x: { ticks: { callback: v => v + '%' } },
-        y: { ticks: { font: { size: 11 } } },
-      },
-    },
-  });
-  makeChart('chart-cr', {
-    type: 'bar',
-    data: {
-      labels: top10.map(r => truncate(r.name, 18)),
-      datasets: [{
-        data: top10.map(r => r.cr_cart_pct || 0),
-        backgroundColor: 'rgba(255,102,0,.6)',
-        borderRadius: 4,
-      }],
-    },
-    options: {
-      responsive: true, maintainAspectRatio: false, indexAxis: 'y',
-      plugins: { legend: { display: false } },
-      scales: {
-        x: { ticks: { callback: v => v + '%' } },
-        y: { ticks: { font: { size: 11 } } },
-      },
-    },
-  });
+          <div className="grid-2">
+            <StockTable />
+            <SupplyPanel />
+          </div>
+        </div>
+      </main>
+    </div>
+  );
+}
+window.StockScreen = StockScreen;
 
-  // Table
-  document.getElementById('tbody-cards').innerHTML = filtered.map(r => {
-    const grade = r.ctr_grade === 'ОТЛИЧНО' ? '<span class="badge badge-green">ОТЛИЧНО</span>'
-                : r.ctr_grade === 'НОРМА'   ? '<span class="badge badge-yellow">НОРМА</span>'
-                :                             '<span class="badge badge-red">ПЛОХО</span>';
-    return `<tr>
-      <td>${r.name || '—'}</td>
-      <td><span class="badge ${r.source==='wb'?'badge-blue':'badge-yellow'}">${(r.source||'').toUpperCase()}</span></td>
-      <td>${r.stat_date ? r.stat_date.toString().slice(0,10) : '—'}</td>
-      <td>${fmt(r.views)}</td>
-      <td>${fmt(r.clicks)}</td>
-      <td>${fmtPct(r.ctr_pct)}</td>
-      <td>${fmt(r.add_to_cart)}</td>
-      <td>${fmtPct(r.cr_cart_pct)}</td>
-      <td>${grade}</td>
-    </tr>`;
-  }).join('') || '<tr><td colspan="9" style="text-align:center;color:var(--muted);padding:30px">Нет данных</td></tr>';
+function StockTable() {
+  const rows = [
+    { sku: 'BTL-340', name: 'Бутылка термо · 0.5л',  emoji: '🍶', platform: 'wb',   stock: 4,  vel: 9.2, days: 0,  status: 'red',    bar: 5  },
+    { sku: 'CDL-AR2', name: 'Свеча ароматическая',  emoji: '🕯️',  platform: 'ozon', stock: 12, vel: 7.4, days: 2,  status: 'red',    bar: 10 },
+    { sku: 'KCH-018', name: 'Кухонные весы 5кг',     emoji: '⚖️',  platform: 'wb',   stock: 24, vel: 6.8, days: 4,  status: 'red',    bar: 18 },
+    { sku: 'BAG-MD7', name: 'Сумка-шопер midi',      emoji: '👜',  platform: 'wb',   stock: 38, vel: 5.5, days: 7,  status: 'red',    bar: 28 },
+    { sku: 'LMP-NX1', name: 'Ночник детский Nyx',    emoji: '💡',  platform: 'ozon', stock: 41, vel: 4.9, days: 8,  status: 'orange', bar: 30 },
+    { sku: 'PWR-22A', name: 'Powerbank 22000mAh',    emoji: '🔋',  platform: 'ozon', stock: 67, vel: 5.1, days: 13, status: 'orange', bar: 45 },
+    { sku: 'CRM-FCE', name: 'Крем для лица retinol', emoji: '🧴',  platform: 'wb',   stock: 88, vel: 4.4, days: 20, status: 'orange', bar: 58 },
+    { sku: 'TWL-90X', name: 'Полотенце вафля 90×150', emoji: '🧺', platform: 'wb',   stock: 152, vel: 3.2, days: 47, status: 'green',  bar: 92 },
+    { sku: 'HDB-AB1', name: 'Беспровод. наушники',   emoji: '🎧',  platform: 'ozon', stock: 184, vel: 4.0, days: 46, status: 'green',  bar: 95 },
+    { sku: 'YOG-MT5', name: 'Коврик для йоги 5мм',   emoji: '🧘',  platform: 'wb',   stock: 210, vel: 2.8, days: 75, status: 'green',  bar: 100 },
+  ];
+
+  const statusLabel = { red: 'СРОЧНО', orange: 'Докупить', green: 'OK' };
+  const statusFill  = { red: '#ff5b5b', orange: '#ff6a1a', green: '#28d17c' };
+
+  return (
+    <div className="panel" style={{ padding: '18px 0 4px' }}>
+      <div className="panel-head" style={{ padding: '0 22px' }}>
+        <div>
+          <div className="panel-title">Остатки по SKU</div>
+          <div className="panel-sub">Сортировка по запасу дней — нарастающий</div>
+        </div>
+        <div className="row">
+          <span className="stat-pill">{I.search}<span className="k">Поиск SKU</span></span>
+          <span className="stat-pill"><span className="k">Площадка</span><span className="v">все</span>{I.chevDn}</span>
+        </div>
+      </div>
+
+      <div style={{ padding: '0 12px' }}>
+        <table className="tbl">
+          <thead>
+            <tr>
+              <th style={{ width: '36%' }}>Товар</th>
+              <th>Площадка</th>
+              <th className="right">Остаток</th>
+              <th className="right">Прод/день</th>
+              <th className="right">Дней запаса <span className="sort-arr">↑</span></th>
+              <th>Запас</th>
+              <th>Статус</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map(r => (
+              <tr key={r.sku}>
+                <td>
+                  <div className="product-cell">
+                    <div className="product-thumb">{r.emoji}</div>
+                    <div>
+                      <div style={{ fontWeight: 600 }}>{r.name}</div>
+                      <div className="product-sub">{r.sku}</div>
+                    </div>
+                  </div>
+                </td>
+                <td>
+                  <span className={`platform-chip ${r.platform}`}>
+                    <span className="swatch">{r.platform === 'wb' ? 'W' : 'O'}</span>
+                    {r.platform === 'wb' ? 'WB' : 'Ozon'}
+                  </span>
+                </td>
+                <td className="right num">{r.stock}</td>
+                <td className="right num muted">{r.vel.toFixed(1)}</td>
+                <td className="right num" style={{
+                  color: r.status === 'red' ? 'var(--red)' : r.status === 'orange' ? 'var(--orange-hi)' : 'var(--text)',
+                  fontWeight: 700,
+                }}>
+                  {r.days} дн
+                </td>
+                <td>
+                  <div className="bar-inline">
+                    <span style={{ width: `${r.bar}%`, background: statusFill[r.status] }} />
+                  </div>
+                </td>
+                <td><span className={`badge ${r.status}`}>{statusLabel[r.status]}</span></td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
 }
 
-function filterCards() {
-  if (state.data.cards) renderCards();
+function SupplyPanel() {
+  const incoming = [
+    { name: 'Бутылка термо 0.5л',  qty: 500, eta: '2 дн',  status: 'В пути',     color: '#5aa9ff' },
+    { name: 'Свеча ароматическая', qty: 800, eta: '4 дн',  status: 'Производство', color: '#ffb648' },
+    { name: 'Кухонные весы 5кг',   qty: 300, eta: '6 дн',  status: 'В пути',     color: '#5aa9ff' },
+    { name: 'Сумка-шопер midi',    qty: 400, eta: '9 дн',  status: 'Согласование', color: '#b07cff' },
+  ];
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
+      <div className="panel">
+        <div className="panel-head">
+          <div>
+            <div className="panel-title">Рекомендация к закупу</div>
+            <div className="panel-sub">Алгоритм на основе скорости и сезонности</div>
+          </div>
+          <span className="badge orange">AI</span>
+        </div>
+        <div style={{
+          padding: 16,
+          border: '1px dashed rgba(255,106,26,0.45)',
+          borderRadius: 16,
+          background: 'rgba(255,106,26,0.05)',
+          display: 'flex', flexDirection: 'column', gap: 12,
+        }}>
+          <div className="row" style={{ justifyContent: 'space-between' }}>
+            <div>
+              <div style={{ fontSize: 13, fontWeight: 600 }}>Заказать <span className="orange-t">5 SKU</span></div>
+              <div className="product-sub" style={{ marginTop: 2 }}>
+                Покрытие на 45 дней · риск out-of-stock снизится на 78%
+              </div>
+            </div>
+            <div className="mono" style={{ fontSize: 18, fontWeight: 800 }}>₽ 412k</div>
+          </div>
+          <div className="chip-row">
+            <span className="mini-chip">Бутылка ×500</span>
+            <span className="mini-chip">Свеча ×800</span>
+            <span className="mini-chip">Весы ×300</span>
+            <span className="mini-chip">Шопер ×400</span>
+            <span className="mini-chip">Ночник ×250</span>
+          </div>
+          <div className="row" style={{ gap: 8 }}>
+            <button className="btn solid" style={{ flex: 1, justifyContent: 'center' }}>Создать заказ</button>
+            <button className="btn">Изменить</button>
+          </div>
+        </div>
+      </div>
+
+      <div className="panel">
+        <div className="panel-head">
+          <div>
+            <div className="panel-title">В пути с фабрики</div>
+            <div className="panel-sub">13 партий · 3 240 единиц</div>
+          </div>
+        </div>
+        {incoming.map((p, i) => (
+          <div className="brk-row" key={i}>
+            <span style={{ width: 8, height: 8, borderRadius: 3, background: p.color, flex: 'none' }} />
+            <span className="brk-name">{p.name}</span>
+            <span className="muted mono" style={{ fontSize: 12 }}>×{p.qty}</span>
+            <span className="mini-chip" style={{ color: p.color, background: `${p.color}1f` }}>{p.status}</span>
+            <span className="brk-val mono">{p.eta}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
 }
 
-// ═══════════════ PLATFORM ═══════════════
-async function loadPlatform() {
-  try {
-    const rows = await apiFetch('/api/platform');
-    renderPlatform(rows);
-  } catch(e) { console.error('Platform error', e); }
+</script>
+<script type="text/babel" data-presets="react">
+/* === funnel === */
+/* ─── Funnel screen ─── */
+function FunnelScreen() {
+  return (
+    <div className="app">
+      <Sidebar active="funnel" />
+      <main className="main">
+        <Topbar
+          title="Воронка"
+          crumb={<><b>Конверсии</b> · все площадки · 30 дней</>}
+          period="30д"
+        />
+        <div className="content">
+          <div className="kpi-row" style={{ gridTemplateColumns: 'repeat(4, 1fr)' }}>
+            <Kpi accent="orange" label="Показы" value="2.84M" delta="9.1%" deltaDir="up"
+              sparkData={[80,85,88,92,90,95,100,98,102,108,112,118]} ico={I.cards} />
+            <Kpi accent="blue" label="CTR" value="11.2" unit="%" delta="1.4 пп" deltaDir="up"
+              sparkData={[8,9,9,10,10,10,11,11,11,11,11,12]} sparkColor="#5aa9ff" ico={I.pct} />
+            <Kpi accent="violet" label="CR в заказ" value="12.3" unit="%" delta="0.6 пп" deltaDir="up"
+              sparkData={[10,11,11,11,12,12,12,12,12,12,12,13]} sparkColor="#b07cff" ico={I.box} />
+            <Kpi accent="green" label="Сред. чек" value="₽ 1 086" delta="3.2%" deltaDir="up"
+              sparkData={[980,1000,1010,1020,1030,1040,1050,1055,1062,1070,1078,1086]} sparkColor="#28d17c" ico={I.cash} />
+          </div>
+
+          <div className="panel">
+            <div className="panel-head">
+              <div>
+                <div className="panel-title">Путь покупателя</div>
+                <div className="panel-sub">Показ → Клик → Корзина → Заказ · все площадки</div>
+              </div>
+              <div className="legend">
+                <span className="stat-pill"><span className="k">Общая конверсия</span><span className="v orange-t">1.38%</span></span>
+              </div>
+            </div>
+
+            <div className="funnel-wrap">
+              <FunnelStep label="Показы"  value="2 845 200" pct="100%"  from="всего"  color="#ff6a1a" h={1.00} />
+              <FunnelStep label="Клики"   value="318 660"   pct="11.2%" from="от показов" color="#ff8a3d" h={0.78} />
+              <FunnelStep label="Корзина" value="64 730"    pct="20.3%" from="от кликов"  color="#ffb648" h={0.55} />
+              <FunnelStep label="Заказ"   value="39 420"    pct="60.9%" from="от корзины" color="#28d17c" h={0.35} last />
+            </div>
+
+            <div style={{ display: 'flex', gap: 10, marginTop: 18, flexWrap: 'wrap' }}>
+              <span className="stat-pill"><span className="k">Drop-off клики→корзина</span><span className="v red-t">79.7%</span></span>
+              <span className="stat-pill"><span className="k">Брошенные корзины</span><span className="v">25 310</span></span>
+              <span className="stat-pill"><span className="k">Среднее время до покупки</span><span className="v">2.4 ч</span></span>
+              <span className="stat-pill"><span className="k">Возврат к корзине</span><span className="v">18.4%</span></span>
+            </div>
+          </div>
+
+          <div className="grid-2">
+            <CTRTable />
+            <FunnelByPlatform />
+          </div>
+        </div>
+      </main>
+    </div>
+  );
+}
+window.FunnelScreen = FunnelScreen;
+
+function FunnelStep({ label, value, pct, from, color, h, last }) {
+  return (
+    <div className="funnel-step" style={{
+      '--c': color,
+      flexBasis: `${h * 100}%`,
+      background: `linear-gradient(180deg, ${color}1a 0%, ${color}05 100%)`,
+      borderColor: `${color}33`,
+    }}>
+      <div>
+        <div className="step-label" style={{ color }}>{label}</div>
+        <div className="step-value">{value}</div>
+      </div>
+      <div className="step-conv">
+        <span className="conv-pill" style={{ background: `${color}22`, color }}>{pct}</span>
+        <span className="conv-from">{from}</span>
+      </div>
+      {!last && (
+        <svg width="14" height="14" viewBox="0 0 24 24"
+          style={{ position: 'absolute', top: '50%', right: -7, transform: 'translateY(-50%)', zIndex: 3, color }}>
+          <path d="M9 6l6 6-6 6" stroke="currentColor" strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      )}
+    </div>
+  );
 }
 
-function renderPlatform(rows) {
-  const bySource = {};
-  rows.forEach(r => bySource[r.source] = r);
-
-  const container = document.getElementById('platform-compare');
-  container.innerHTML = ['wb','ozon'].map(src => {
-    const r = bySource[src] || {};
-    const name = src === 'wb' ? 'Wildberries' : 'Ozon';
-    return `
-    <div class="platform-card">
-      <div class="platform-name ${src}">${name}</div>
-      <div class="platform-stat"><span class="platform-stat-label">Выручка</span><span class="platform-stat-val">${fmtRub(r.revenue)}</span></div>
-      <div class="platform-stat"><span class="platform-stat-label">Чистая выручка</span><span class="platform-stat-val">${fmtRub(r.net_revenue)}</span></div>
-      <div class="platform-stat"><span class="platform-stat-label">Комиссия</span><span class="platform-stat-val" style="color:var(--red)">${fmtRub(r.commission)} (${fmtPct(r.commission_pct)})</span></div>
-      <div class="platform-stat"><span class="platform-stat-label">Логистика</span><span class="platform-stat-val" style="color:var(--yellow)">${fmtRub(r.logistics)} (${fmtPct(r.logistics_pct)})</span></div>
-      <div class="platform-stat"><span class="platform-stat-label">Продано штук</span><span class="platform-stat-val">${fmt(r.units)}</span></div>
-    </div>`;
-  }).join('');
-
-  // Charts
-  const labels = ['Выручка','Чистая выручка','Комиссия','Логистика'];
-  const wbData   = [bySource.wb?.revenue,   bySource.wb?.net_revenue,   bySource.wb?.commission,   bySource.wb?.logistics  ].map(v=>Number(v||0));
-  const ozonData = [bySource.ozon?.revenue, bySource.ozon?.net_revenue, bySource.ozon?.commission, bySource.ozon?.logistics].map(v=>Number(v||0));
-
-  makeChart('chart-platform-bar', {
-    type: 'bar',
-    data: {
-      labels,
-      datasets: [
-        { label:'WB',   data:wbData,   backgroundColor:'rgba(204,0,102,.7)', borderRadius:4 },
-        { label:'Ozon', data:ozonData, backgroundColor:'rgba(0,91,255,.7)',  borderRadius:4 },
-      ],
-    },
-    options: {
-      responsive: true, maintainAspectRatio: false,
-      plugins: { legend: { labels: { color:'#aaa' } } },
-      scales: { y: { ticks: { callback: v => '₽' + (v/1000).toFixed(0) + 'к' } } },
-    },
-  });
-
-  makeChart('chart-platform-pie', {
-    type: 'doughnut',
-    data: {
-      labels: ['WB', 'Ozon'],
-      datasets: [{
-        data: [bySource.wb?.revenue || 0, bySource.ozon?.revenue || 0],
-        backgroundColor: ['rgba(204,0,102,.8)', 'rgba(0,91,255,.8)'],
-        borderColor: '#1e1e1e',
-        borderWidth: 3,
-      }],
-    },
-    options: {
-      responsive: true, maintainAspectRatio: false,
-      cutout: '55%',
-      plugins: { legend: { position: 'bottom', labels: { color:'#aaa', padding: 16 } } },
-    },
-  });
+function CTRTable() {
+  const rows = [
+    { name: 'Коврик для йоги 5мм',     emoji: '🧘', plat: 'wb',   imp: '184k', ctr: 18.4, cart: 22.1, ord: 11.8, color: '#28d17c' },
+    { name: 'Powerbank 22000mAh',       emoji: '🔋', plat: 'ozon', imp: '162k', ctr: 14.2, cart: 19.8, ord: 9.7,  color: '#28d17c' },
+    { name: 'Беспровод. наушники',      emoji: '🎧', plat: 'ozon', imp: '148k', ctr: 12.6, cart: 17.4, ord: 8.5,  color: '#ffb648' },
+    { name: 'Крем для лица retinol',    emoji: '🧴', plat: 'wb',   imp: '134k', ctr: 11.8, cart: 16.2, ord: 7.4,  color: '#ffb648' },
+    { name: 'Свеча ароматическая',      emoji: '🕯️', plat: 'ozon', imp: '118k', ctr: 9.4,  cart: 12.8, ord: 5.1,  color: '#ff5b5b' },
+    { name: 'Ночник детский Nyx',       emoji: '💡', plat: 'ozon', imp: '92k',  ctr: 8.2,  cart: 10.4, ord: 4.2,  color: '#ff5b5b' },
+  ];
+  return (
+    <div className="panel" style={{ padding: '18px 0 4px' }}>
+      <div className="panel-head" style={{ padding: '0 22px' }}>
+        <div>
+          <div className="panel-title">Топ карточек по CTR</div>
+          <div className="panel-sub">30 дней · отсортировано по CTR</div>
+        </div>
+        <span className="btn ghost" style={{ padding: '6px 10px', fontSize: 11 }}>Все карточки →</span>
+      </div>
+      <div style={{ padding: '0 12px' }}>
+        <table className="tbl">
+          <thead>
+            <tr>
+              <th>Товар</th>
+              <th>Площадка</th>
+              <th className="right">Показы</th>
+              <th className="right">CTR <span className="sort-arr">↓</span></th>
+              <th className="right">→ Корзина</th>
+              <th className="right">→ Заказ</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((r, i) => (
+              <tr key={i}>
+                <td>
+                  <div className="product-cell">
+                    <div className="product-thumb">{r.emoji}</div>
+                    <div style={{ fontWeight: 600 }}>{r.name}</div>
+                  </div>
+                </td>
+                <td>
+                  <span className={`platform-chip ${r.plat}`}>
+                    <span className="swatch">{r.plat === 'wb' ? 'W' : 'O'}</span>
+                    {r.plat === 'wb' ? 'WB' : 'Ozon'}
+                  </span>
+                </td>
+                <td className="right num">{r.imp}</td>
+                <td className="right num" style={{ color: r.color, fontWeight: 700 }}>{r.ctr.toFixed(1)}%</td>
+                <td className="right num muted">{r.cart.toFixed(1)}%</td>
+                <td className="right num">{r.ord.toFixed(1)}%</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
 }
 
-// ═══════════════ TABLE SORT ═══════════════
-function sortTable(tableId, colIdx) {
-  const key = tableId + '_' + colIdx;
-  const asc = state.sortState[key] !== true;
-  state.sortState[key] = asc;
+function FunnelByPlatform() {
+  const platforms = [
+    { name: 'Wildberries', short: 'wb', color: '#ff3d8b',
+      imp: 1840, click: 11.6, cart: 21.4, ord: 13.1, total: 1.42 },
+    { name: 'Ozon',         short: 'ozon', color: '#5aa9ff',
+      imp: 1005, click: 10.4, cart: 18.7, ord: 11.6, total: 1.28 },
+  ];
 
-  const table = document.getElementById(tableId);
-  const ths = table.querySelectorAll('th');
-  ths.forEach((th,i) => {
-    th.classList.remove('sort-asc','sort-desc');
-    if (i === colIdx) th.classList.add(asc ? 'sort-asc' : 'sort-desc');
-  });
+  return (
+    <div className="panel">
+      <div className="panel-head">
+        <div>
+          <div className="panel-title">Сравнение по площадкам</div>
+          <div className="panel-sub">Конверсии воронки · WB vs Ozon</div>
+        </div>
+      </div>
 
-  const tbody = table.querySelector('tbody');
-  const rows = Array.from(tbody.querySelectorAll('tr'));
-  rows.sort((a, b) => {
-    const aText = (a.cells[colIdx]?.textContent || '').trim();
-    const bText = (b.cells[colIdx]?.textContent || '').trim();
-    const aNum = parseFloat(aText.replace(/[₽\s%]/g,'').replace(',','.'));
-    const bNum = parseFloat(bText.replace(/[₽\s%]/g,'').replace(',','.'));
-    if (!isNaN(aNum) && !isNaN(bNum)) return asc ? aNum-bNum : bNum-aNum;
-    return asc ? aText.localeCompare(bText,'ru') : bText.localeCompare(aText,'ru');
-  });
-  rows.forEach(r => tbody.appendChild(r));
+      {platforms.map(p => (
+        <div key={p.short} style={{
+          padding: '14px 16px',
+          borderRadius: 16,
+          background: 'rgba(255,255,255,0.02)',
+          border: '1px solid var(--border-soft)',
+          marginBottom: 12,
+        }}>
+          <div className="row" style={{ justifyContent: 'space-between', marginBottom: 12 }}>
+            <span className={`platform-chip ${p.short}`} style={{ fontSize: 13, padding: '4px 12px 4px 6px' }}>
+              <span className="swatch" style={{ width: 20, height: 20, borderRadius: 6, fontSize: 11 }}>
+                {p.short === 'wb' ? 'W' : 'O'}
+              </span>
+              {p.name}
+            </span>
+            <span className="stat-pill"><span className="k">Сквозная</span><span className="v orange-t">{p.total}%</span></span>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8 }}>
+            <FunnelStat label="Показы"   v={`${p.imp}k`}             c={p.color} pct={100} />
+            <FunnelStat label="CTR"      v={`${p.click.toFixed(1)}%`} c={p.color} pct={p.click * 6} />
+            <FunnelStat label="Корзина"  v={`${p.cart.toFixed(1)}%`}  c={p.color} pct={p.cart * 3.5} />
+            <FunnelStat label="Заказ"    v={`${p.ord.toFixed(1)}%`}   c={p.color} pct={p.ord * 5} />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
 }
 
-// ═══════════════ HELPERS ═══════════════
-function truncate(str, n) {
-  return str && str.length > n ? str.slice(0,n) + '…' : (str || '');
+function FunnelStat({ label, v, c, pct }) {
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+      <div style={{ fontSize: 10.5, color: 'var(--text-mute)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>{label}</div>
+      <div className="mono" style={{ fontSize: 16, fontWeight: 800 }}>{v}</div>
+      <div className="brk-bar" style={{ width: '100%' }}>
+        <span style={{ width: `${Math.min(pct, 100)}%`, background: c }} />
+      </div>
+    </div>
+  );
 }
 
-// ═══════════════ REFRESH ═══════════════
-async function refreshAll() {
-  state.data = { finance: null, products: null, abc: null, stock: null, cards: null, platform: null };
-  await loadKPIs();
-  loadSection(state.currentSection);
-  document.getElementById('last-update').textContent =
-    'Обновлено: ' + new Date().toLocaleTimeString('ru-RU', {hour:'2-digit',minute:'2-digit'});
+</script>
+
+<script type="text/babel" data-presets="react">
+function App() {
+  return (
+    <DesignCanvas
+      title="МаркетЛупа · Hi-Fi"
+      subtitle="Аналитика для продавцов WB + Ozon · soft & rounded · 3 экрана"
+    >
+      <DCSection id="screens" title="Экраны дашборда">
+        <DCArtboard id="finance" label="01 · Финансы" width={1440} height={1024}>
+          <FinanceScreen />
+        </DCArtboard>
+        <DCArtboard id="stock" label="02 · Склад" width={1440} height={1024}>
+          <StockScreen />
+        </DCArtboard>
+        <DCArtboard id="funnel" label="03 · Воронка" width={1440} height={1024}>
+          <FunnelScreen />
+        </DCArtboard>
+      </DCSection>
+    </DesignCanvas>
+  );
 }
 
-// ═══════════════ INIT ═══════════════
-(async () => {
-  await loadKPIs();
-  loadFinance();
-  document.getElementById('last-update').textContent =
-    'Загружено: ' + new Date().toLocaleTimeString('ru-RU', {hour:'2-digit',minute:'2-digit'});
-  // Auto-refresh every 5 minutes
-  setInterval(refreshAll, 5 * 60 * 1000);
-})();
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
 </script>
 </body>
 </html>
