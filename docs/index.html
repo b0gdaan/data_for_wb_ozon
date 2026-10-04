@@ -1,8 +1,8 @@
 <!doctype html>
-<html lang="ru">
+<html lang="en">
 <head>
 <meta charset="utf-8"/>
-<title>МаркетЛупа — Analytics Dashboard</title>
+<title>MarketLens — Analytics Dashboard</title>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
@@ -152,51 +152,51 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:13
 const {useState}=React;
 
 /* ── MOCK DATA ── */
-const pScale={'7д':.23,'14д':.47,'30д':1,'90д':3.1};
+const pScale={'7d':.23,'14d':.47,'30d':1,'90d':3.1};
 
 const PRODUCTS=[
-  {sku:'YOG-MT5',name:'Коврик для йоги 5мм',    e:'🧘',cat:'Спорт',       p:'wb',  cost:280,sold:287,rev:115430,comm:17315,logi:11428,profit:41007,roi:51},
-  {sku:'HDB-AB1',name:'Беспровод. наушники',     e:'🎧',cat:'Электроника', p:'ozon',cost:850,sold:184,rev:221680,comm:33252,logi:18542,profit:56166,roi:36},
-  {sku:'BTL-340',name:'Бутылка термо 0.5л',      e:'🍶',cat:'Дом и кухня', p:'wb',  cost:180,sold:342,rev:97812, comm:14672,logi:8214, profit:34926,roi:47},
-  {sku:'TWL-90X',name:'Полотенце вафля 90×150',  e:'🧺',cat:'Дом и кухня', p:'wb',  cost:180,sold:152,rev:54720, comm:8208, logi:4932, profit:14180,roi:52},
-  {sku:'CRM-FCE',name:'Крем для лица retinol',   e:'🧴',cat:'Красота',     p:'wb',  cost:320,sold:242,rev:94380, comm:14157,logi:7124, profit:24639,roi:32},
-  {sku:'PWR-22A',name:'Powerbank 22000mAh',      e:'🔋',cat:'Электроника', p:'ozon',cost:620,sold:168,rev:168000,comm:25200,logi:14280,profit:27720,roi:27},
-  {sku:'BAG-MD7',name:'Сумка-шопер midi',        e:'👜',cat:'Одежда',      p:'wb',  cost:420,sold:78, rev:58500, comm:8775, logi:5148, profit:11877,roi:36},
-  {sku:'KCH-018',name:'Кухонные весы 5кг',       e:'⚖️',cat:'Дом и кухня', p:'wb',  cost:380,sold:94, rev:56400, comm:8460, logi:4982, profit:6758, roi:19},
-  {sku:'LMP-NX1',name:'Ночник детский Nyx',      e:'💡',cat:'Электроника', p:'ozon',cost:280,sold:62, rev:24800, comm:3720, logi:2728, profit:880,  roi:5},
-  {sku:'CDL-AR2',name:'Свеча ароматическая',     e:'🕯️',cat:'Красота',     p:'ozon',cost:160,sold:44, rev:17600, comm:2640, logi:1848, profit:-488, roi:-7},
+  {sku:'YOG-MT5',name:'Yoga mat 5 mm',    e:'🧘',cat:'Sports',       p:'wb',  cost:280,sold:287,rev:115430,comm:17315,logi:11428,profit:41007,roi:51},
+  {sku:'HDB-AB1',name:'Wireless headphones',     e:'🎧',cat:'Electronics', p:'ozon',cost:850,sold:184,rev:221680,comm:33252,logi:18542,profit:56166,roi:36},
+  {sku:'BTL-340',name:'Thermal bottle 0.5 L',      e:'🍶',cat:'Home & Kitchen', p:'wb',  cost:180,sold:342,rev:97812, comm:14672,logi:8214, profit:34926,roi:47},
+  {sku:'TWL-90X',name:'Waffle towel 90 x 150',  e:'🧺',cat:'Home & Kitchen', p:'wb',  cost:180,sold:152,rev:54720, comm:8208, logi:4932, profit:14180,roi:52},
+  {sku:'CRM-FCE',name:'Retinol face cream',   e:'🧴',cat:'Beauty',     p:'wb',  cost:320,sold:242,rev:94380, comm:14157,logi:7124, profit:24639,roi:32},
+  {sku:'PWR-22A',name:'Powerbank 22000mAh',      e:'🔋',cat:'Electronics', p:'ozon',cost:620,sold:168,rev:168000,comm:25200,logi:14280,profit:27720,roi:27},
+  {sku:'BAG-MD7',name:'Midi tote bag',        e:'👜',cat:'Clothing',      p:'wb',  cost:420,sold:78, rev:58500, comm:8775, logi:5148, profit:11877,roi:36},
+  {sku:'KCH-018',name:'Kitchen scale 5 kg',       e:'⚖️',cat:'Home & Kitchen', p:'wb',  cost:380,sold:94, rev:56400, comm:8460, logi:4982, profit:6758, roi:19},
+  {sku:'LMP-NX1',name:'Nyx night light',      e:'💡',cat:'Electronics', p:'ozon',cost:280,sold:62, rev:24800, comm:3720, logi:2728, profit:880,  roi:5},
+  {sku:'CDL-AR2',name:'Scented candle',     e:'🕯️',cat:'Beauty',     p:'ozon',cost:160,sold:44, rev:17600, comm:2640, logi:1848, profit:-488, roi:-7},
 ];
 const STOCKS=[
-  {sku:'BTL-340',name:'Бутылка термо 0.5л',     e:'🍶',p:'wb',  qty:4,  vel:9.2,days:0, st:'red'},
-  {sku:'CDL-AR2',name:'Свеча ароматическая',     e:'🕯️',p:'ozon',qty:12, vel:7.4,days:2, st:'red'},
-  {sku:'KCH-018',name:'Кухонные весы 5кг',       e:'⚖️',p:'wb',  qty:24, vel:6.8,days:4, st:'red'},
-  {sku:'BAG-MD7',name:'Сумка-шопер midi',        e:'👜',p:'wb',  qty:38, vel:5.5,days:7, st:'red'},
-  {sku:'LMP-NX1',name:'Ночник детский Nyx',      e:'💡',p:'ozon',qty:41, vel:4.9,days:8, st:'orange'},
+  {sku:'BTL-340',name:'Thermal bottle 0.5 L',     e:'🍶',p:'wb',  qty:4,  vel:9.2,days:0, st:'red'},
+  {sku:'CDL-AR2',name:'Scented candle',     e:'🕯️',p:'ozon',qty:12, vel:7.4,days:2, st:'red'},
+  {sku:'KCH-018',name:'Kitchen scale 5 kg',       e:'⚖️',p:'wb',  qty:24, vel:6.8,days:4, st:'red'},
+  {sku:'BAG-MD7',name:'Midi tote bag',        e:'👜',p:'wb',  qty:38, vel:5.5,days:7, st:'red'},
+  {sku:'LMP-NX1',name:'Nyx night light',      e:'💡',p:'ozon',qty:41, vel:4.9,days:8, st:'orange'},
   {sku:'PWR-22A',name:'Powerbank 22000mAh',      e:'🔋',p:'ozon',qty:67, vel:5.1,days:13,st:'orange'},
-  {sku:'CRM-FCE',name:'Крем для лица retinol',   e:'🧴',p:'wb',  qty:88, vel:4.4,days:20,st:'orange'},
-  {sku:'TWL-90X',name:'Полотенце вафля 90×150',  e:'🧺',p:'wb',  qty:152,vel:3.2,days:47,st:'green'},
-  {sku:'HDB-AB1',name:'Беспровод. наушники',     e:'🎧',p:'ozon',qty:184,vel:4.0,days:46,st:'green'},
-  {sku:'YOG-MT5',name:'Коврик для йоги 5мм',     e:'🧘',p:'wb',  qty:210,vel:2.8,days:75,st:'green'},
+  {sku:'CRM-FCE',name:'Retinol face cream',   e:'🧴',p:'wb',  qty:88, vel:4.4,days:20,st:'orange'},
+  {sku:'TWL-90X',name:'Waffle towel 90 x 150',  e:'🧺',p:'wb',  qty:152,vel:3.2,days:47,st:'green'},
+  {sku:'HDB-AB1',name:'Wireless headphones',     e:'🎧',p:'ozon',qty:184,vel:4.0,days:46,st:'green'},
+  {sku:'YOG-MT5',name:'Yoga mat 5 mm',     e:'🧘',p:'wb',  qty:210,vel:2.8,days:75,st:'green'},
 ];
 const CARDS=[
-  {name:'Коврик для йоги 5мм',   e:'🧘',p:'wb',  views:184000,ctr:18.4,cart:22.1,ord:11.8},
+  {name:'Yoga mat 5 mm',   e:'🧘',p:'wb',  views:184000,ctr:18.4,cart:22.1,ord:11.8},
   {name:'Powerbank 22000mAh',    e:'🔋',p:'ozon',views:162000,ctr:14.2,cart:19.8,ord:9.7},
-  {name:'Беспровод. наушники',   e:'🎧',p:'ozon',views:148000,ctr:12.6,cart:17.4,ord:8.5},
-  {name:'Крем для лица retinol', e:'🧴',p:'wb',  views:134000,ctr:11.8,cart:16.2,ord:7.4},
-  {name:'Бутылка термо 0.5л',    e:'🍶',p:'wb',  views:128000,ctr:11.0,cart:15.8,ord:7.2},
-  {name:'Свеча ароматическая',   e:'🕯️',p:'ozon',views:118000,ctr:9.4, cart:12.8,ord:5.1},
-  {name:'Полотенце вафля 90×150',e:'🧺',p:'wb',  views:98000, ctr:8.8, cart:13.4,ord:6.2},
-  {name:'Ночник детский Nyx',    e:'💡',p:'ozon',views:92000, ctr:8.2, cart:10.4,ord:4.2},
-  {name:'Сумка-шопер midi',      e:'👜',p:'wb',  views:84000, ctr:7.3, cart:9.8, ord:3.8},
-  {name:'Кухонные весы 5кг',     e:'⚖️',p:'wb',  views:76000, ctr:6.1, cart:8.2, ord:3.1},
+  {name:'Wireless headphones',   e:'🎧',p:'ozon',views:148000,ctr:12.6,cart:17.4,ord:8.5},
+  {name:'Retinol face cream', e:'🧴',p:'wb',  views:134000,ctr:11.8,cart:16.2,ord:7.4},
+  {name:'Thermal bottle 0.5 L',    e:'🍶',p:'wb',  views:128000,ctr:11.0,cart:15.8,ord:7.2},
+  {name:'Scented candle',   e:'🕯️',p:'ozon',views:118000,ctr:9.4, cart:12.8,ord:5.1},
+  {name:'Waffle towel 90 x 150',e:'🧺',p:'wb',  views:98000, ctr:8.8, cart:13.4,ord:6.2},
+  {name:'Nyx night light',    e:'💡',p:'ozon',views:92000, ctr:8.2, cart:10.4,ord:4.2},
+  {name:'Midi tote bag',      e:'👜',p:'wb',  views:84000, ctr:7.3, cart:9.8, ord:3.8},
+  {name:'Kitchen scale 5 kg',     e:'⚖️',p:'wb',  views:76000, ctr:6.1, cart:8.2, ord:3.1},
 ];
 const CATS=[
-  {name:'Дом и кухня',sku:64,rev:1240000,profit:390000,share:29,c:'#ff6a1a'},
-  {name:'Красота',    sku:38,rev:902000, profit:248000,share:21,c:'#ff3d8b'},
-  {name:'Электроника',sku:22,rev:743000, profit:183000,share:17,c:'#5aa9ff'},
-  {name:'Одежда',     sku:48,rev:612000, profit:141000,share:14,c:'#b07cff'},
-  {name:'Спорт',      sku:30,rev:458000, profit:124000,share:11,c:'#28d17c'},
-  {name:'Прочее',     sku:46,rev:326000, profit:74000, share:8, c:'#5a5a60'},
+  {name:'Home & Kitchen',sku:64,rev:1240000,profit:390000,share:29,c:'#ff6a1a'},
+  {name:'Beauty',    sku:38,rev:902000, profit:248000,share:21,c:'#ff3d8b'},
+  {name:'Electronics',sku:22,rev:743000, profit:183000,share:17,c:'#5aa9ff'},
+  {name:'Clothing',     sku:48,rev:612000, profit:141000,share:14,c:'#b07cff'},
+  {name:'Sports',      sku:30,rev:458000, profit:124000,share:11,c:'#28d17c'},
+  {name:'Other',     sku:46,rev:326000, profit:74000, share:8, c:'#5a5a60'},
 ];
 const DAILY=Array.from({length:30},(_,i)=>({
   d:i+1,
@@ -204,7 +204,7 @@ const DAILY=Array.from({length:30},(_,i)=>({
   oz: Math.round(35000+i*650+Math.sin(i*.5+1)*5200),
 })).map(d=>({...d,tot:d.wb+d.oz,prof:Math.round((d.wb+d.oz)*.32)}));
 const WEEKS=Array.from({length:8},(_,i)=>({
-  w:`Нед ${i+1}`,
+  w:`Week ${i+1}`,
   wb:Math.round(580000+i*19000+Math.sin(i*.8)*25000),
   oz:Math.round(340000+i*14000+Math.sin(i*.6+1)*18000),
 })).map((w,i,a)=>({...w,
@@ -214,7 +214,7 @@ const WEEKS=Array.from({length:8},(_,i)=>({
 const CMP={cur:{rev:4281540,profit:1364290,orders:3942,margin:31.9,aov:1086},prv:{rev:3809230,profit:1260480,orders:3620,margin:33.1,aov:1053}};
 
 /* ── HELPERS ── */
-const fN=n=>Number(n).toLocaleString('ru-RU');
+const fN=n=>Number(n).toLocaleString('en-US');
 const fR=n=>'₽ '+fN(Math.round(n));
 const fK=n=>n>=1e6?(n/1e6).toFixed(1)+'M':n>=1e3?(n/1e3).toFixed(0)+'k':String(n);
 const sg=n=>n>0?'+':'';
@@ -330,15 +330,15 @@ function Donut({data,size=160,label,sub}){
 /* ── SIDEBAR ── */
 function Sidebar({active,onNav}){
   const G=[
-    {l:'Обзор',items:[{k:'finance',l:'Финансы',i:I.finance},{k:'goods',l:'Товары',i:I.goods},{k:'stock',l:'Склад',i:I.stock,b:'5'},{k:'cards',l:'Карточки',i:I.cards}]},
-    {l:'Маркетплейсы',items:[{k:'vs',l:'WB vs Ozon',i:I.vs},{k:'trends',l:'Тренды',i:I.trend},{k:'compare',l:'Сравнение',i:I.compare}]},
-    {l:'Аналитика',items:[{k:'top',l:'Топ / Флоп',i:I.top},{k:'cats',l:'Категории',i:I.cats},{k:'funnel',l:'Воронка',i:I.funnel}]},
+    {l:'Overview',items:[{k:'finance',l:'Finance',i:I.finance},{k:'goods',l:'Products',i:I.goods},{k:'stock',l:'Inventory',i:I.stock,b:'5'},{k:'cards',l:'Listings',i:I.cards}]},
+    {l:'Marketplaces',items:[{k:'vs',l:'WB vs Ozon',i:I.vs},{k:'trends',l:'Trends',i:I.trend},{k:'compare',l:'Comparison',i:I.compare}]},
+    {l:'Analytics',items:[{k:'top',l:'Top / Bottom',i:I.top},{k:'cats',l:'Categories',i:I.cats},{k:'funnel',l:'Funnel',i:I.funnel}]},
   ];
   return (
     <aside className="sidebar">
       <div className="brand">
-        <div className="brand-mark">М</div>
-        <div><div className="brand-title">Маркет<span style={{color:'var(--orange-hi)'}}>Лупа</span></div><div className="brand-sub">WB + Ozon analytics</div></div>
+        <div className="brand-mark">M</div>
+        <div><div className="brand-title">Market<span style={{color:'var(--orange-hi)'}}>Lens</span></div><div className="brand-sub">WB + Ozon · Demo data</div></div>
       </div>
       {G.map((g,gi)=>(
         <div key={gi}>
@@ -352,8 +352,8 @@ function Sidebar({active,onNav}){
         </div>
       ))}
       <div className="side-footer">
-        <div className="sync-row"><div className="sync-status"><span className="sync-dot"/>Синхронизировано</div><span className="sync-time">09:14</span></div>
-        <div className="sync-btn">{I.refresh} Обновить сейчас</div>
+        <div className="sync-row"><div className="sync-status"><span className="sync-dot"/>Last synced</div><span className="sync-time">09:14</span></div>
+        <div className="sync-btn">{I.refresh} Refresh now</div>
       </div>
     </aside>
   );
@@ -368,11 +368,11 @@ function Topbar({title,crumb,period,onPeriod}){
         {crumb&&<div className="crumb">{crumb}</div>}
       </div>
       <div className="topbar-right">
-        {period&&<div className="period">{['7д','14д','30д','90д'].map(p=>(
+        {period&&<div className="period">{['7d','14d','30d','90d'].map(p=>(
           <button key={p} className={p===period?'active':''} onClick={()=>onPeriod&&onPeriod(p)}>{p}</button>
         ))}</div>}
-        <button className="btn orange-out">{I.dl} Экспорт CSV</button>
-        <button className="btn solid">{I.refresh} Синхронизация</button>
+        <button className="btn orange-out">{I.dl} Export CSV</button>
+        <button className="btn solid">{I.refresh} Sync data</button>
       </div>
     </div>
   );
@@ -393,43 +393,43 @@ function Kpi({accent='orange',label,value,unit,delta,dir='up',sub,spark,sc,ico})
   );
 }
 
-/* ═══ 1. ФИНАНСЫ ═══ */
+
 function FinanceScreen({onNav}){
-  const [per,setPer]=useState('30д');
+  const [per,setPer]=useState('30d');
   const s=pScale[per]||1;
   const D=DAILY;
   const PnL=[
-    {n:'Себестоимость',      v:'₽ 2 089 320',pct:48.8,c:'#5a5a60'},
-    {n:'Комиссия площадки',  v:'₽ 612 080',  pct:14.3,c:'#5aa9ff'},
-    {n:'Логистика и FBO',    v:'₽ 354 220',  pct:8.3, c:'#ff3d8b'},
-    {n:'Реклама',            v:'₽ 198 540',  pct:4.6, c:'#ffb648'},
-    {n:'Возвраты',           v:'₽ 63 090',   pct:1.5, c:'#ff5b5b'},
-    {n:'Чистая прибыль',     v:'₽ 1 364 290',pct:31.9,c:'#28d17c',bold:true},
+    {n:'Cost of goods',      v:'₽ 2 089 320',pct:48.8,c:'#5a5a60'},
+    {n:'Marketplace fees',  v:'₽ 612 080',  pct:14.3,c:'#5aa9ff'},
+    {n:'Logistics & fulfillment',    v:'₽ 354 220',  pct:8.3, c:'#ff3d8b'},
+    {n:'Advertising',            v:'₽ 198 540',  pct:4.6, c:'#ffb648'},
+    {n:'Returns',           v:'₽ 63 090',   pct:1.5, c:'#ff5b5b'},
+    {n:'Net profit',     v:'₽ 1 364 290',pct:31.9,c:'#28d17c',bold:true},
   ];
   return (
     <div className="app"><Sidebar active="finance" onNav={onNav}/>
     <main className="main">
-      <Topbar title="Финансы" crumb={<><b>Дашборд</b> · 1–30 апр 2026</>} period={per} onPeriod={setPer}/>
+      <Topbar title="Finance" crumb={<><b>Dashboard</b> · 1–30 Apr 2026</>} period={per} onPeriod={setPer}/>
       <div className="content">
         <div className="kpi-row">
-          <Kpi accent="orange" label="Выручка 30д"    value={fK(Math.round(4281540*s))} delta="12.4%" dir="up"   spark={D.slice(-12).map(d=>d.tot)} ico={I.cash}/>
-          <Kpi accent="green"  label="Прибыль 30д"    value={fK(Math.round(1364290*s))} delta="8.1%"  dir="up"   spark={D.slice(-12).map(d=>d.prof)} sc="#28d17c" ico={I.wallet}/>
-          <Kpi accent="blue"   label="Заказы"         value={fN(Math.round(3942*s))}    delta="5.6%"  dir="up"   spark={[100,108,112,118,115,124,130,128,135,140,148,152]} sc="#5aa9ff" ico={I.box}/>
-          <Kpi accent="violet" label="Маржа"          value="31.9" unit="%" delta="0.8 пп" dir="up"   spark={[28,29,30,30,31,30,31,32,31,32,32,32]} sc="#b07cff" ico={I.pct}/>
-          <Kpi accent="red"    label="Срочно докупить"value="5"             delta="2 нов." dir="down"  spark={[1,2,2,1,3,3,4,4,3,4,5,5]} sc="#ff5b5b" ico={I.alert}/>
-          <Kpi accent="gray"   label="Всего SKU"      value="248"           sub="активных карточек" ico={I.sku}/>
+          <Kpi accent="orange" label="Revenue 30d"    value={fK(Math.round(4281540*s))} delta="12.4%" dir="up"   spark={D.slice(-12).map(d=>d.tot)} ico={I.cash}/>
+          <Kpi accent="green"  label="Profit 30d"    value={fK(Math.round(1364290*s))} delta="8.1%"  dir="up"   spark={D.slice(-12).map(d=>d.prof)} sc="#28d17c" ico={I.wallet}/>
+          <Kpi accent="blue"   label="Orders"         value={fN(Math.round(3942*s))}    delta="5.6%"  dir="up"   spark={[100,108,112,118,115,124,130,128,135,140,148,152]} sc="#5aa9ff" ico={I.box}/>
+          <Kpi accent="violet" label="Margin"          value="31.9" unit="%" delta="0.8 pp" dir="up"   spark={[28,29,30,30,31,30,31,32,31,32,32,32]} sc="#b07cff" ico={I.pct}/>
+          <Kpi accent="red"    label="Urgent restock"value="5"             delta="2 new" dir="down"  spark={[1,2,2,1,3,3,4,4,3,4,5,5]} sc="#ff5b5b" ico={I.alert}/>
+          <Kpi accent="gray"   label="Total SKUs"      value="248"           sub="active listings" ico={I.sku}/>
         </div>
         <div className="grid-charts">
           <div className="panel">
             <div className="panel-head">
-              <div><div className="panel-title">Выручка и прибыль по дням</div><div className="panel-sub">Апрель 2026 · все площадки</div></div>
-              <div className="legend"><span className="legend-item"><span className="legend-dot" style={{background:'#ff6a1a'}}/>Выручка</span><span className="legend-item"><span className="legend-dot" style={{background:'#28d17c'}}/>Прибыль</span></div>
+              <div><div className="panel-title">Daily revenue & profit</div><div className="panel-sub">April 2026 · all platforms</div></div>
+              <div className="legend"><span className="legend-item"><span className="legend-dot" style={{background:'#ff6a1a'}}/>Revenue</span><span className="legend-item"><span className="legend-dot" style={{background:'#28d17c'}}/>Profit</span></div>
             </div>
             <AreaChart series={[{data:D.map(d=>d.tot),color:'#ff6a1a'},{data:D.map(d=>d.prof),color:'#28d17c'}]} labels={D.map(d=>String(d.d).padStart(2,'0'))} W={660} H={220}/>
           </div>
           <div className="panel">
             <div className="panel-head">
-              <div><div className="panel-title">WB vs Ozon</div><div className="panel-sub">Динамика выручки</div></div>
+              <div><div className="panel-title">WB vs Ozon</div><div className="panel-sub">Revenue trends</div></div>
               <div className="legend"><span className="legend-item"><span className="legend-dot" style={{background:'#ff3d8b'}}/>WB</span><span className="legend-item"><span className="legend-dot" style={{background:'#5aa9ff'}}/>Ozon</span></div>
             </div>
             <AreaChart series={[{data:D.map(d=>d.wb),color:'#ff3d8b'},{data:D.map(d=>d.oz),color:'#5aa9ff'}]} labels={D.map(d=>String(d.d).padStart(2,'0'))} W={440} H={220}/>
@@ -437,7 +437,7 @@ function FinanceScreen({onNav}){
         </div>
         <div className="grid-2">
           <div className="panel">
-            <div className="panel-head"><div><div className="panel-title">Структура P&L</div><div className="panel-sub">Доли в выручке · апрель</div></div><span className="spill"><span className="k">Total</span><span className="v">₽ 4.28M</span></span></div>
+            <div className="panel-head"><div><div className="panel-title">P&L breakdown</div><div className="panel-sub">Share of revenue · April</div></div><span className="spill"><span className="k">Total</span><span className="v">₽ 4.28M</span></span></div>
             <div className="sbar" style={{marginBottom:18,height:10}}>{PnL.map((r,i)=><span key={i} style={{width:`${r.pct}%`,background:r.c}}/>)}</div>
             {PnL.map((r,i)=>(
               <div className="brkrow" key={i}>
@@ -450,7 +450,7 @@ function FinanceScreen({onNav}){
             ))}
           </div>
           <div className="panel">
-            <div className="panel-head"><div><div className="panel-title">Топ категорий</div><div className="panel-sub">По выручке · 30 дней</div></div></div>
+            <div className="panel-head"><div><div className="panel-title">Top categories</div><div className="panel-sub">By revenue · 30 days</div></div></div>
             {CATS.map((c,i)=>(
               <div className="brkrow" key={i}>
                 <span style={{width:26,height:26,borderRadius:9,background:`${c.c}22`,color:c.c,display:'grid',placeItems:'center',flexShrink:0,fontFamily:'JetBrains Mono',fontSize:11,fontWeight:800}}>{String(i+1).padStart(2,'0')}</span>
@@ -466,7 +466,7 @@ function FinanceScreen({onNav}){
   );
 }
 
-/* ═══ 2. ТОВАРЫ ═══ */
+
 function GoodsScreen({onNav}){
   const [view,setView]=useState('profit');
   const [q,setQ]=useState('');
@@ -479,22 +479,22 @@ function GoodsScreen({onNav}){
   return (
     <div className="app"><Sidebar active="goods" onNav={onNav}/>
     <main className="main">
-      <Topbar title="Товары" crumb={<><b>Рентабельность</b> · 248 SKU</>}/>
+      <Topbar title="Products" crumb={<><b>Profitability</b> · 248 SKU</>}/>
       <div className="content">
         <div className="row" style={{gap:8}}>
-          <button className={`btn${view==='profit'?' solid':''}`} onClick={()=>setView('profit')}>Рентабельность</button>
-          <button className={`btn${view==='abc'?' solid':''}`} onClick={()=>setView('abc')}>ABC-анализ</button>
-          <input value={q} onChange={e=>setQ(e.target.value)} placeholder="Поиск товара..."
+          <button className={`btn${view==='profit'?' solid':''}`} onClick={()=>setView('profit')}>Profitability</button>
+          <button className={`btn${view==='abc'?' solid':''}`} onClick={()=>setView('abc')}>ABC analysis</button>
+          <input value={q} onChange={e=>setQ(e.target.value)} placeholder="Search products..."
             style={{marginLeft:'auto',padding:'9px 14px',background:'var(--s1)',border:'1px solid var(--border)',color:'var(--text)',borderRadius:'var(--r-pill)',fontFamily:'var(--sans)',fontSize:12,outline:'none',width:220}}/>
         </div>
         {view==='profit'&&(
           <div className="panel" style={{padding:'18px 0 4px'}}>
-            <div className="panel-head" style={{padding:'0 22px'}}><div><div className="panel-title">Рентабельность SKU</div><div className="panel-sub">30 дней</div></div></div>
+            <div className="panel-head" style={{padding:'0 22px'}}><div><div className="panel-title">SKU profitability</div><div className="panel-sub">30 days</div></div></div>
             <div className="tscroll" style={{padding:'0 12px'}}>
               <table className="tbl"><thead><tr>
-                <th>Товар</th><th>Кат.</th><th>Площадка</th><th className="right">Прод.</th>
-                <th className="right">Выручка</th><th className="right">Комиссия</th><th className="right">Логистика</th>
-                <th className="right">Прибыль</th><th className="right">ROI%</th>
+                <th>Product</th><th>Category</th><th>Platform</th><th className="right">Sold</th>
+                <th className="right">Revenue</th><th className="right">Fees</th><th className="right">Logistics</th>
+                <th className="right">Profit</th><th className="right">ROI%</th>
               </tr></thead><tbody>
                 {list.map(p=>{
                   const rc=p.roi>=30?'var(--green)':p.roi>=10?'var(--yellow)':'var(--red)';
@@ -517,22 +517,22 @@ function GoodsScreen({onNav}){
         {view==='abc'&&(
           <div className="grid-2">
             <div className="panel" style={{display:'flex',flexDirection:'column',alignItems:'center',gap:20}}>
-              <div className="panel-head" style={{width:'100%'}}><div><div className="panel-title">ABC-анализ</div><div className="panel-sub">По вкладу в прибыль</div></div></div>
+              <div className="panel-head" style={{width:'100%'}}><div><div className="panel-title">ABC analysis</div><div className="panel-sub">By profit contribution</div></div></div>
               <Donut data={[{v:cn.A,c:'#28d17c'},{v:cn.B,c:'#ffb648'},{v:cn.C,c:'#ff5b5b'}]} size={160} label={String(PRODUCTS.length)} sub="SKU"/>
               <div className="row" style={{gap:20}}>
                 {['A','B','C'].map(cls=>(
                   <div key={cls} style={{textAlign:'center'}}>
                     <span className={`badge ${cls==='A'?'green':cls==='B'?'yellow':'red'}`}>{cls}</span>
                     <div className="mono" style={{fontSize:22,fontWeight:800,marginTop:6}}>{cn[cls]}</div>
-                    <div style={{fontSize:11,color:'var(--mute)'}}>{cls==='A'?'топ 80%':cls==='B'?'80–95%':'хвост'}</div>
+                    <div style={{fontSize:11,color:'var(--mute)'}}>{cls==='A'?'top 80%':cls==='B'?'80–95%':'tail'}</div>
                   </div>
                 ))}
               </div>
             </div>
             <div className="panel" style={{padding:'18px 0 4px'}}>
-              <div className="panel-head" style={{padding:'0 22px'}}><div><div className="panel-title">ABC по товарам</div></div></div>
+              <div className="panel-head" style={{padding:'0 22px'}}><div><div className="panel-title">Product ABC analysis</div></div></div>
               <div className="tscroll" style={{padding:'0 12px'}}>
-                <table className="tbl"><thead><tr><th>Товар</th><th className="right">Прибыль</th><th className="right">Нараст.%</th><th>Класс</th></tr></thead>
+                <table className="tbl"><thead><tr><th>Product</th><th className="right">Profit</th><th className="right">Cumulative %</th><th>Class</th></tr></thead>
                 <tbody>{abc.map(p=>(
                   <tr key={p.sku}>
                     <td><div className="pcell"><div className="pthumb">{p.e}</div><div style={{fontWeight:600}}>{p.name}</div></div></td>
@@ -550,39 +550,39 @@ function GoodsScreen({onNav}){
   );
 }
 
-/* ═══ 3. СКЛАД ═══ */
+
 function StockScreen({onNav}){
   const [f,setF]=useState('all');
   const rows=STOCKS.filter(r=>f==='all'||r.st===f);
-  const SL={red:'СРОЧНО',orange:'Докупить',green:'OK'};
+  const SL={red:'URGENT',orange:'Restock',green:'OK'};
   const SF={red:'#ff5b5b',orange:'#ff6a1a',green:'#28d17c'};
   return (
     <div className="app"><Sidebar active="stock" onNav={onNav}/>
     <main className="main">
-      <Topbar title="Склад" crumb={<><b>Остатки</b> · 248 SKU</>}/>
+      <Topbar title="Inventory" crumb={<><b>Stock levels</b> · 248 SKU</>}/>
       <div className="content">
         <div className="kpi-row">
-          <Kpi accent="red"    label="Срочно докупить" value="5"  delta="2 нов."  dir="down" spark={[1,2,2,1,3,3,4,4,3,4,5,5]} sc="#ff5b5b" ico={I.alert}/>
-          <Kpi accent="orange" label="Докупить"        value="12" delta="3 нов."  dir="up"   spark={[6,8,9,8,10,9,11,10,11,12,12,12]} ico={I.box}/>
-          <Kpi accent="green"  label="OK в наличии"    value="218"delta="—"       dir="flat" spark={[210,212,214,215,217,218,218,219,218,219,218,218]} sc="#28d17c" ico={I.sku}/>
-          <Kpi accent="blue"   label="В пути"          value="13" delta="2 партии"dir="up"   spark={[4,6,6,8,8,10,11,11,12,12,13,13]} sc="#5aa9ff" ico={I.box}/>
-          <Kpi accent="violet" label="Ср. дней запаса" value="22" unit="дн" delta="3 дн" dir="down" spark={[28,27,26,26,25,24,24,23,23,22,22,22]} sc="#b07cff" ico={I.pct}/>
-          <Kpi accent="gray"   label="Заморожено"      value="₽1.84M" delta="6.2%" dir="down" spark={[2.1,2.0,1.95,1.9,1.95,1.92,1.88,1.85,1.84,1.84,1.85,1.84]} sc="#8d8d93" ico={I.cash}/>
+          <Kpi accent="red"    label="Urgent restock" value="5"  delta="2 new"  dir="down" spark={[1,2,2,1,3,3,4,4,3,4,5,5]} sc="#ff5b5b" ico={I.alert}/>
+          <Kpi accent="orange" label="Restock"        value="12" delta="3 new"  dir="up"   spark={[6,8,9,8,10,9,11,10,11,12,12,12]} ico={I.box}/>
+          <Kpi accent="green"  label="Healthy stock"    value="218"delta="—"       dir="flat" spark={[210,212,214,215,217,218,218,219,218,219,218,218]} sc="#28d17c" ico={I.sku}/>
+          <Kpi accent="blue"   label="In transit"          value="13" delta="2 shipments"dir="up"   spark={[4,6,6,8,8,10,11,11,12,12,13,13]} sc="#5aa9ff" ico={I.box}/>
+          <Kpi accent="violet" label="Avg. days of stock" value="22" unit="days" delta="3 days" dir="down" spark={[28,27,26,26,25,24,24,23,23,22,22,22]} sc="#b07cff" ico={I.pct}/>
+          <Kpi accent="gray"   label="Capital tied up"      value="₽1.84M" delta="6.2%" dir="down" spark={[2.1,2.0,1.95,1.9,1.95,1.92,1.88,1.85,1.84,1.84,1.85,1.84]} sc="#8d8d93" ico={I.cash}/>
         </div>
         <div className="row" style={{gap:8}}>
-          {[['all','Все'],['red','🔴 Срочно'],['orange','⚠️ Докупить'],['green','✅ Норма']].map(([k,l])=>(
+          {[['all','All'],['red','🔴 Urgent'],['orange','⚠️ Restock'],['green','✅ Healthy']].map(([k,l])=>(
             <button key={k} className={`btn${f===k?' solid':''}`} onClick={()=>setF(k)}>{l}</button>
           ))}
-          <span style={{marginLeft:'auto',color:'var(--mute)',fontSize:12}}>Показано: {rows.length} из {STOCKS.length}</span>
+          <span style={{marginLeft:'auto',color:'var(--mute)',fontSize:12}}>Showing: {rows.length} of {STOCKS.length}</span>
         </div>
         <div className="grid-2w">
           <div className="panel" style={{padding:'18px 0 4px'}}>
-            <div className="panel-head" style={{padding:'0 22px'}}><div><div className="panel-title">Остатки по SKU</div><div className="panel-sub">По дням запаса ↑</div></div></div>
+            <div className="panel-head" style={{padding:'0 22px'}}><div><div className="panel-title">Stock by SKU</div><div className="panel-sub">By days of stock ↑</div></div></div>
             <div className="tscroll" style={{padding:'0 12px'}}>
               <table className="tbl"><thead><tr>
-                <th style={{width:'36%'}}>Товар</th><th>Площадка</th>
-                <th className="right">Остаток</th><th className="right">Прод/день</th>
-                <th className="right">Дней <span className="sort-arr">↑</span></th><th>Запас</th><th>Статус</th>
+                <th style={{width:'36%'}}>Product</th><th>Platform</th>
+                <th className="right">Stock</th><th className="right">Units/day</th>
+                <th className="right">Days <span className="sort-arr">↑</span></th><th>Coverage</th><th>Status</th>
               </tr></thead><tbody>
                 {rows.map(r=>(
                   <tr key={r.sku}>
@@ -590,7 +590,7 @@ function StockScreen({onNav}){
                     <td><span className={`pchip ${r.p}`}><span className="sw">{r.p==='wb'?'W':'O'}</span>{r.p==='wb'?'WB':'Ozon'}</span></td>
                     <td className="right num">{r.qty}</td>
                     <td className="right num muted">{r.vel.toFixed(1)}</td>
-                    <td className="right num" style={{color:r.st==='red'?'var(--red)':r.st==='orange'?'var(--orange-hi)':'var(--text)',fontWeight:700}}>{r.days} дн</td>
+                    <td className="right num" style={{color:r.st==='red'?'var(--red)':r.st==='orange'?'var(--orange-hi)':'var(--text)',fontWeight:700}}>{r.days} days</td>
                     <td><div className="bar-i"><span style={{width:`${Math.min(r.days/60*100,100)}%`,background:SF[r.st]}}/></div></td>
                     <td><span className={`badge ${r.st}`}>{SL[r.st]}</span></td>
                   </tr>
@@ -600,19 +600,19 @@ function StockScreen({onNav}){
           </div>
           <div style={{display:'flex',flexDirection:'column',gap:18}}>
             <div className="panel">
-              <div className="panel-head"><div><div className="panel-title">Рекомендация к закупу</div><div className="panel-sub">Алгоритм скорости продаж</div></div><span className="badge orange">AI</span></div>
+              <div className="panel-head"><div><div className="panel-title">Restock recommendation</div><div className="panel-sub">Based on sales velocity</div></div><span className="badge orange">AI</span></div>
               <div style={{padding:16,border:'1px dashed rgba(255,106,26,.45)',borderRadius:16,background:'rgba(255,106,26,.05)',display:'flex',flexDirection:'column',gap:12}}>
                 <div className="row" style={{justifyContent:'space-between'}}>
-                  <div><div style={{fontSize:13,fontWeight:600}}>Заказать <span className="orange-t">5 SKU</span></div><div className="psub" style={{marginTop:2}}>Покрытие 45 дней · риск out-of-stock −78%</div></div>
+                  <div><div style={{fontSize:13,fontWeight:600}}>Order <span className="orange-t">5 SKU</span></div><div className="psub" style={{marginTop:2}}>Illustrative restock plan · 45-day coverage</div></div>
                   <div className="mono" style={{fontSize:18,fontWeight:800}}>₽ 412k</div>
                 </div>
-                <div className="chip-row">{['Бутылка ×500','Свеча ×800','Весы ×300','Шопер ×400','Ночник ×250'].map(c=><span key={c} className="mchip">{c}</span>)}</div>
-                <div className="row"><button className="btn solid" style={{flex:1,justifyContent:'center'}}>Создать заказ</button><button className="btn">Изменить</button></div>
+                <div className="chip-row">{['Bottle x500','Candle x800','Scale x300','Tote x400','Night light x250'].map(c=><span key={c} className="mchip">{c}</span>)}</div>
+                <div className="row"><button className="btn solid" style={{flex:1,justifyContent:'center'}}>Create order</button><button className="btn">Edit</button></div>
               </div>
             </div>
             <div className="panel">
-              <div className="panel-head"><div><div className="panel-title">В пути с фабрики</div><div className="panel-sub">13 партий · 3 240 ед.</div></div></div>
-              {[{n:'Бутылка термо 0.5л',q:500,e:'2 дн',st:'В пути',c:'#5aa9ff'},{n:'Свеча ароматическая',q:800,e:'4 дн',st:'Производство',c:'#ffb648'},{n:'Кухонные весы 5кг',q:300,e:'6 дн',st:'В пути',c:'#5aa9ff'},{n:'Сумка-шопер midi',q:400,e:'9 дн',st:'Согласование',c:'#b07cff'}].map((p,i)=>(
+              <div className="panel-head"><div><div className="panel-title">Factory shipments</div><div className="panel-sub">13 shipments · 3,240 units</div></div></div>
+              {[{n:'Thermal bottle 0.5 L',q:500,e:'2 days',st:'In transit',c:'#5aa9ff'},{n:'Scented candle',q:800,e:'4 days',st:'In production',c:'#ffb648'},{n:'Kitchen scale 5 kg',q:300,e:'6 days',st:'In transit',c:'#5aa9ff'},{n:'Midi tote bag',q:400,e:'9 days',st:'Pending approval',c:'#b07cff'}].map((p,i)=>(
                 <div className="brkrow" key={i}>
                   <span style={{width:8,height:8,borderRadius:3,background:p.c,flexShrink:0}}/>
                   <span className="brkname">{p.n}</span>
@@ -629,31 +629,31 @@ function StockScreen({onNav}){
   );
 }
 
-/* ═══ 4. КАРТОЧКИ ═══ */
+
 function CardsScreen({onNav}){
-  const [per,setPer]=useState('30д');
+  const [per,setPer]=useState('30d');
   const s=pScale[per]||1;
   return (
     <div className="app"><Sidebar active="cards" onNav={onNav}/>
     <main className="main">
-      <Topbar title="Карточки" crumb={<><b>Статистика</b> · {per}</>} period={per} onPeriod={setPer}/>
+      <Topbar title="Listings" crumb={<><b>Statistics</b> · {per}</>} period={per} onPeriod={setPer}/>
       <div className="content">
         <div className="kpi-row-4">
-          <Kpi accent="orange" label="Показы"     value={fK(Math.round(1148000*s))} delta="9.1%"  dir="up"   spark={[80,85,88,92,90,95,100,98,102,108,112,118]} ico={I.cards}/>
-          <Kpi accent="blue"   label="CTR"        value="11.2" unit="%" delta="1.4 пп" dir="up"   spark={[8,9,9,10,10,10,11,11,11,11,11,12]} sc="#5aa9ff" ico={I.pct}/>
-          <Kpi accent="violet" label="CR в заказ" value="12.3" unit="%" delta="0.6 пп" dir="up"   spark={[10,11,11,11,12,12,12,12,12,12,12,13]} sc="#b07cff" ico={I.box}/>
-          <Kpi accent="green"  label="Ср. чек"    value={`₽ ${fN(Math.round(1086*Math.max(s,.5)))}`} delta="3.2%" dir="up" spark={[980,1000,1010,1020,1030,1040,1050,1055,1062,1070,1078,1086]} sc="#28d17c" ico={I.cash}/>
+          <Kpi accent="orange" label="Impressions"     value={fK(Math.round(1148000*s))} delta="9.1%"  dir="up"   spark={[80,85,88,92,90,95,100,98,102,108,112,118]} ico={I.cards}/>
+          <Kpi accent="blue"   label="CTR"        value="11.2" unit="%" delta="1.4 pp" dir="up"   spark={[8,9,9,10,10,10,11,11,11,11,11,12]} sc="#5aa9ff" ico={I.pct}/>
+          <Kpi accent="violet" label="Order conversion" value="12.3" unit="%" delta="0.6 pp" dir="up"   spark={[10,11,11,11,12,12,12,12,12,12,12,13]} sc="#b07cff" ico={I.box}/>
+          <Kpi accent="green"  label="Avg. order value"    value={`₽ ${fN(Math.round(1086*Math.max(s,.5)))}`} delta="3.2%" dir="up" spark={[980,1000,1010,1020,1030,1040,1050,1055,1062,1070,1078,1086]} sc="#28d17c" ico={I.cash}/>
         </div>
         <div className="panel" style={{padding:'18px 0 4px'}}>
-          <div className="panel-head" style={{padding:'0 22px'}}><div><div className="panel-title">Топ карточек по CTR</div><div className="panel-sub">Отсортировано по CTR</div></div></div>
+          <div className="panel-head" style={{padding:'0 22px'}}><div><div className="panel-title">Top listings by CTR</div><div className="panel-sub">Sorted by CTR</div></div></div>
           <div className="tscroll" style={{padding:'0 12px'}}>
             <table className="tbl"><thead><tr>
-              <th>Товар</th><th>Площадка</th><th className="right">Показы</th>
-              <th className="right">CTR <span className="sort-arr">↓</span></th><th className="right">→Корзина</th><th className="right">→Заказ</th><th>Оценка</th>
+              <th>Product</th><th>Platform</th><th className="right">Impressions</th>
+              <th className="right">CTR <span className="sort-arr">↓</span></th><th className="right">→Cart</th><th className="right">→Order</th><th>Rating</th>
             </tr></thead><tbody>
               {CARDS.map((r,i)=>{
                 const g=r.ctr>=12?'green':r.ctr>=8?'yellow':'red';
-                const gl=r.ctr>=12?'ОТЛИЧНО':r.ctr>=8?'НОРМА':'ПЛОХО';
+                const gl=r.ctr>=12?'EXCELLENT':r.ctr>=8?'AVERAGE':'LOW';
                 return <tr key={i}>
                   <td><div className="pcell"><div className="pthumb">{r.e}</div><div style={{fontWeight:600}}>{r.name}</div></div></td>
                   <td><span className={`pchip ${r.p}`}><span className="sw">{r.p==='wb'?'W':'O'}</span>{r.p==='wb'?'WB':'Ozon'}</span></td>
@@ -683,23 +683,23 @@ function PlatformScreen({onNav}){
   return (
     <div className="app"><Sidebar active="vs" onNav={onNav}/>
     <main className="main">
-      <Topbar title="WB vs Ozon" crumb={<><b>Сравнение площадок</b> · 30 дней</>}/>
+      <Topbar title="WB vs Ozon" crumb={<><b>Platform comparison</b> · 30 days</>}/>
       <div className="content">
         <div className="grid-2">
           {PL.map(pl=>(
             <div className="panel" key={pl.k}>
               <div className="panel-head">
                 <span className={`pchip ${pl.k}`} style={{fontSize:14,padding:'6px 14px 6px 8px'}}><span className="sw" style={{width:22,height:22,borderRadius:7,fontSize:11}}>{pl.k==='wb'?'W':'O'}</span>{pl.name}</span>
-                <span className="spill"><span className="k">Маржа</span><span className="v" style={{color:'var(--green)'}}>{pl.margin}%</span></span>
+                <span className="spill"><span className="k">Margin</span><span className="v" style={{color:'var(--green)'}}>{pl.margin}%</span></span>
               </div>
-              {[{l:'Выручка',v:fR(pl.rev)},{l:'Чистая выручка',v:fR(pl.net),c:'var(--green)'},{l:'Комиссия',v:`${fR(pl.comm)} (${(pl.comm/pl.rev*100).toFixed(1)}%)`,c:'var(--red)'},{l:'Логистика',v:`${fR(pl.logi)} (${(pl.logi/pl.rev*100).toFixed(1)}%)`,c:'var(--yellow)'},{l:'Заказов (шт)',v:fN(pl.units)}].map((s,i)=>(
+              {[{l:'Revenue',v:fR(pl.rev)},{l:'Net revenue',v:fR(pl.net),c:'var(--green)'},{l:'Fees',v:`${fR(pl.comm)} (${(pl.comm/pl.rev*100).toFixed(1)}%)`,c:'var(--red)'},{l:'Logistics',v:`${fR(pl.logi)} (${(pl.logi/pl.rev*100).toFixed(1)}%)`,c:'var(--yellow)'},{l:'Orders (units)',v:fN(pl.units)}].map((s,i)=>(
                 <div key={i} style={{display:'flex',justifyContent:'space-between',padding:'10px 0',borderBottom:'1px solid var(--bs)'}}>
                   <span style={{color:'var(--mute)',fontSize:13}}>{s.l}</span>
                   <span style={{fontWeight:600,fontSize:13,color:s.c||'var(--text)'}}>{s.v}</span>
                 </div>
               ))}
               <div style={{marginTop:16}}>
-                <div style={{fontSize:11,color:'var(--faint)',marginBottom:8,textTransform:'uppercase',letterSpacing:'.08em'}}>Доля выручки</div>
+                <div style={{fontSize:11,color:'var(--faint)',marginBottom:8,textTransform:'uppercase',letterSpacing:'.08em'}}>Revenue share</div>
                 <div style={{height:8,background:'rgba(255,255,255,.05)',borderRadius:999,overflow:'hidden'}}><div style={{width:`${pl.rev/total*100}%`,height:'100%',background:pl.c,borderRadius:999}}/></div>
                 <div className="mono" style={{fontSize:12,marginTop:5,color:pl.c}}>{(pl.rev/total*100).toFixed(1)}%</div>
               </div>
@@ -707,8 +707,8 @@ function PlatformScreen({onNav}){
           ))}
         </div>
         <div className="panel">
-          <div className="panel-head"><div><div className="panel-title">Сравнение метрик</div><div className="panel-sub">WB vs Ozon</div></div></div>
-          {[{l:'Выручка',wb:PL[0].rev,oz:PL[1].rev,f:v=>fK(v)},{l:'Чист. выручка',wb:PL[0].net,oz:PL[1].net,f:v=>fK(v)},{l:'Комиссия %',wb:PL[0].comm/PL[0].rev*100,oz:PL[1].comm/PL[1].rev*100,f:v=>v.toFixed(1)+'%'},{l:'Логистика %',wb:PL[0].logi/PL[0].rev*100,oz:PL[1].logi/PL[1].rev*100,f:v=>v.toFixed(1)+'%'}].map((row,i)=>{
+          <div className="panel-head"><div><div className="panel-title">Metric comparison</div><div className="panel-sub">WB vs Ozon</div></div></div>
+          {[{l:'Revenue',wb:PL[0].rev,oz:PL[1].rev,f:v=>fK(v)},{l:'Net revenue',wb:PL[0].net,oz:PL[1].net,f:v=>fK(v)},{l:'Fees %',wb:PL[0].comm/PL[0].rev*100,oz:PL[1].comm/PL[1].rev*100,f:v=>v.toFixed(1)+'%'},{l:'Logistics %',wb:PL[0].logi/PL[0].rev*100,oz:PL[1].logi/PL[1].rev*100,f:v=>v.toFixed(1)+'%'}].map((row,i)=>{
             const mx=Math.max(row.wb,row.oz);
             return (
               <div key={i} className="brkrow" style={{flexDirection:'column',alignItems:'stretch',gap:8}}>
@@ -728,32 +728,32 @@ function PlatformScreen({onNav}){
   );
 }
 
-/* ═══ 6. ТРЕНДЫ ═══ */
+
 function TrendsScreen({onNav}){
   return (
     <div className="app"><Sidebar active="trends" onNav={onNav}/>
     <main className="main">
-      <Topbar title="Тренды" crumb={<><b>Динамика WoW</b> · 8 недель</>}/>
+      <Topbar title="Trends" crumb={<><b>Week-over-week trends</b> · 8 weeks</>}/>
       <div className="content">
         <div className="kpi-row-4">
-          <Kpi accent="orange" label="Выручка тек. неделя" value={fK(WEEKS[7].wb+WEEKS[7].oz)} delta="+7.3%" dir="up" spark={WEEKS.map(w=>w.wb+w.oz)} ico={I.cash}/>
-          <Kpi accent="pink"   label="WB тек. неделя"    value={fK(WEEKS[7].wb)} delta={`${WEEKS[7].wbWow>=0?'+':''}${WEEKS[7].wbWow}%`} dir={WEEKS[7].wbWow>=0?'up':'down'} spark={WEEKS.map(w=>w.wb)} sc="#ff3d8b" ico={I.goods}/>
-          <Kpi accent="blue"   label="Ozon тек. неделя"  value={fK(WEEKS[7].oz)} delta={`${WEEKS[7].ozWow>=0?'+':''}${WEEKS[7].ozWow}%`} dir={WEEKS[7].ozWow>=0?'up':'down'} spark={WEEKS.map(w=>w.oz)} sc="#5aa9ff" ico={I.goods}/>
-          <Kpi accent="green"  label="Ср. WoW рост"      value="+5.8%" sub="за 8 недель" ico={I.trend}/>
+          <Kpi accent="orange" label="This week revenue" value={fK(WEEKS[7].wb+WEEKS[7].oz)} delta="+7.3%" dir="up" spark={WEEKS.map(w=>w.wb+w.oz)} ico={I.cash}/>
+          <Kpi accent="pink"   label="WB this week"    value={fK(WEEKS[7].wb)} delta={`${WEEKS[7].wbWow>=0?'+':''}${WEEKS[7].wbWow}%`} dir={WEEKS[7].wbWow>=0?'up':'down'} spark={WEEKS.map(w=>w.wb)} sc="#ff3d8b" ico={I.goods}/>
+          <Kpi accent="blue"   label="Ozon this week"  value={fK(WEEKS[7].oz)} delta={`${WEEKS[7].ozWow>=0?'+':''}${WEEKS[7].ozWow}%`} dir={WEEKS[7].ozWow>=0?'up':'down'} spark={WEEKS.map(w=>w.oz)} sc="#5aa9ff" ico={I.goods}/>
+          <Kpi accent="green"  label="Avg. WoW growth"      value="+5.8%" sub="over 8 weeks" ico={I.trend}/>
         </div>
         <div className="panel">
           <div className="panel-head">
-            <div><div className="panel-title">Выручка по неделям</div><div className="panel-sub">WB + Ozon</div></div>
+            <div><div className="panel-title">Weekly revenue</div><div className="panel-sub">WB + Ozon</div></div>
             <div className="legend"><span className="legend-item"><span className="legend-dot" style={{background:'#ff3d8b'}}/>WB</span><span className="legend-item"><span className="legend-dot" style={{background:'#5aa9ff'}}/>Ozon</span></div>
           </div>
           <AreaChart series={[{data:WEEKS.map(w=>w.wb),color:'#ff3d8b'},{data:WEEKS.map(w=>w.oz),color:'#5aa9ff'}]} labels={WEEKS.map(w=>w.w)} W={900} H={200} yFmt={v=>(v/1000).toFixed(0)+'k'}/>
         </div>
         <div className="panel" style={{padding:'18px 0 4px'}}>
-          <div className="panel-head" style={{padding:'0 22px'}}><div><div className="panel-title">WoW % по неделям</div></div></div>
+          <div className="panel-head" style={{padding:'0 22px'}}><div><div className="panel-title">Weekly WoW %</div></div></div>
           <div style={{padding:'0 12px'}}>
             <table className="tbl"><thead><tr>
-              <th>Неделя</th><th className="right">WB</th><th className="right">WB WoW%</th>
-              <th className="right">Ozon</th><th className="right">Ozon WoW%</th><th className="right">Итого</th>
+              <th>Week</th><th className="right">WB</th><th className="right">WB WoW%</th>
+              <th className="right">Ozon</th><th className="right">Ozon WoW%</th><th className="right">Total</th>
             </tr></thead><tbody>
               {WEEKS.map((w,i)=>(
                 <tr key={i}>
@@ -773,18 +773,18 @@ function TrendsScreen({onNav}){
   );
 }
 
-/* ═══ 7. СРАВНЕНИЕ ═══ */
+
 function CompareScreen({onNav}){
   const {cur,prv}=CMP;
-  const M=[{l:'Выручка',c:cur.rev,p:prv.rev,f:v=>fK(v)},{l:'Прибыль',c:cur.profit,p:prv.profit,f:v=>fK(v)},{l:'Заказы',c:cur.orders,p:prv.orders,f:v=>fN(v)},{l:'Маржа',c:cur.margin,p:prv.margin,f:v=>v+'%'},{l:'Ср. чек',c:cur.aov,p:prv.aov,f:v=>'₽'+fN(v)}];
+  const M=[{l:'Revenue',c:cur.rev,p:prv.rev,f:v=>fK(v)},{l:'Profit',c:cur.profit,p:prv.profit,f:v=>fK(v)},{l:'Orders',c:cur.orders,p:prv.orders,f:v=>fN(v)},{l:'Margin',c:cur.margin,p:prv.margin,f:v=>v+'%'},{l:'Avg. order value',c:cur.aov,p:prv.aov,f:v=>'₽'+fN(v)}];
   return (
     <div className="app"><Sidebar active="compare" onNav={onNav}/>
     <main className="main">
-      <Topbar title="Сравнение" crumb={<><b>Апрель vs Март 2026</b></>}/>
+      <Topbar title="Comparison" crumb={<><b>April vs March 2026</b></>}/>
       <div className="content">
         <div className="grid-2">
-          <div className="panel"><div className="panel-head"><div><div className="panel-title">Апрель 2026</div><div className="panel-sub">Текущий период</div></div></div><div className="mono" style={{fontSize:34,fontWeight:800,color:'var(--orange-hi)',marginBottom:4}}>₽ {fK(cur.rev)}</div><div style={{fontSize:13,color:'var(--mute)'}}>Выручка · {fN(cur.orders)} заказов · маржа {cur.margin}%</div></div>
-          <div className="panel"><div className="panel-head"><div><div className="panel-title">Март 2026</div><div className="panel-sub">Предыдущий период</div></div></div><div className="mono" style={{fontSize:34,fontWeight:800,color:'var(--mute)',marginBottom:4}}>₽ {fK(prv.rev)}</div><div style={{fontSize:13,color:'var(--mute)'}}>Выручка · {fN(prv.orders)} заказов · маржа {prv.margin}%</div></div>
+          <div className="panel"><div className="panel-head"><div><div className="panel-title">April 2026</div><div className="panel-sub">Current period</div></div></div><div className="mono" style={{fontSize:34,fontWeight:800,color:'var(--orange-hi)',marginBottom:4}}>₽ {fK(cur.rev)}</div><div style={{fontSize:13,color:'var(--mute)'}}>Revenue · {fN(cur.orders)} orders · margin {cur.margin}%</div></div>
+          <div className="panel"><div className="panel-head"><div><div className="panel-title">March 2026</div><div className="panel-sub">Previous period</div></div></div><div className="mono" style={{fontSize:34,fontWeight:800,color:'var(--mute)',marginBottom:4}}>₽ {fK(prv.rev)}</div><div style={{fontSize:13,color:'var(--mute)'}}>Revenue · {fN(prv.orders)} orders · margin {prv.margin}%</div></div>
         </div>
         <div className="grid-3">
           {M.map((m,i)=>{
@@ -797,7 +797,7 @@ function CompareScreen({onNav}){
                   <span className="mono" style={{fontSize:26,fontWeight:800}}>{m.f(m.c)}</span>
                   <span className={`delta ${up?'up':'down'}`}>{up?I.up:I.dn}{up?'+':''}{Math.abs(d).toFixed(1)}%</span>
                 </div>
-                <div style={{fontSize:12,color:'var(--faint)'}}>Пред.: <span style={{color:'var(--mute)'}}>{m.f(m.p)}</span></div>
+                <div style={{fontSize:12,color:'var(--faint)'}}>Previous: <span style={{color:'var(--mute)'}}>{m.f(m.p)}</span></div>
                 <div style={{marginTop:10,height:6,background:'rgba(255,255,255,.05)',borderRadius:999,overflow:'hidden'}}><div style={{width:`${Math.min(m.c/Math.max(m.c,m.p)*100,100)}%`,height:'100%',background:up?'var(--green)':'var(--red)',borderRadius:999}}/></div>
                 <div style={{marginTop:3}}><div style={{width:`${Math.min(m.p/Math.max(m.c,m.p)*100,100)}%`,height:4,background:'rgba(255,255,255,.07)',borderRadius:999}}/></div>
               </div>
@@ -809,7 +809,7 @@ function CompareScreen({onNav}){
   );
 }
 
-/* ═══ 8. ТОП/ФЛОП ═══ */
+
 function TopFlopScreen({onNav}){
   const sorted=[...PRODUCTS].sort((a,b)=>b.profit-a.profit);
   const top=sorted.slice(0,5);
@@ -827,47 +827,47 @@ function TopFlopScreen({onNav}){
   return (
     <div className="app"><Sidebar active="top" onNav={onNav}/>
     <main className="main">
-      <Topbar title="Топ / Флоп" crumb={<><b>По прибыли</b> · 30 дней</>}/>
+      <Topbar title="Top / Bottom" crumb={<><b>By profit</b> · 30 days</>}/>
       <div className="content">
         <div className="kpi-row-4">
-          <Kpi accent="green"  label="Лидер прибыли"  value={fK(top[0].profit)} sub={top[0].name} ico={I.star}/>
-          <Kpi accent="orange" label="ROI лидер"      value={top[0].roi+'%'}    sub="Коврик для йоги" ico={I.pct}/>
-          <Kpi accent="red"    label="Убыточных SKU"  value={String(PRODUCTS.filter(p=>p.profit<0).length)} sub="товаров в минусе" ico={I.alert}/>
-          <Kpi accent="violet" label="Лучшая кат."    value="Дом и кухня"       sub="29% выручки" ico={I.cats}/>
+          <Kpi accent="green"  label="Top profit"  value={fK(top[0].profit)} sub={top[0].name} ico={I.star}/>
+          <Kpi accent="orange" label="Top ROI"      value={top[0].roi+'%'}    sub="Yoga mat" ico={I.pct}/>
+          <Kpi accent="red"    label="Loss-making SKUs"  value={String(PRODUCTS.filter(p=>p.profit<0).length)} sub="products with losses" ico={I.alert}/>
+          <Kpi accent="violet" label="Top category"    value="Home & Kitchen"       sub="29% of revenue" ico={I.cats}/>
         </div>
         <div className="grid-2">
-          <div className="panel"><div className="panel-head"><div><div className="panel-title">🏆 Топ 5 — лучшие</div><div className="panel-sub">По прибыли · 30 дней</div></div></div>{top.map((p,i)=><Row key={p.sku} p={p} i={i} isFlop={false}/>)}</div>
-          <div className="panel"><div className="panel-head"><div><div className="panel-title">📉 Флоп 5 — худшие</div><div className="panel-sub">По прибыли · 30 дней</div></div></div>{flop.map((p,i)=><Row key={p.sku} p={p} i={i} isFlop={true}/>)}</div>
+          <div className="panel"><div className="panel-head"><div><div className="panel-title">🏆 Top 5 performers</div><div className="panel-sub">By profit · 30 days</div></div></div>{top.map((p,i)=><Row key={p.sku} p={p} i={i} isFlop={false}/>)}</div>
+          <div className="panel"><div className="panel-head"><div><div className="panel-title">📉 Bottom 5 performers</div><div className="panel-sub">By profit · 30 days</div></div></div>{flop.map((p,i)=><Row key={p.sku} p={p} i={i} isFlop={true}/>)}</div>
         </div>
       </div>
     </main></div>
   );
 }
 
-/* ═══ 9. КАТЕГОРИИ ═══ */
+
 function CatsScreen({onNav}){
   const total=CATS.reduce((s,c)=>s+c.rev,0);
   return (
     <div className="app"><Sidebar active="cats" onNav={onNav}/>
     <main className="main">
-      <Topbar title="Категории" crumb={<><b>Разбивка</b> · {CATS.length} категорий</>}/>
+      <Topbar title="Categories" crumb={<><b>Breakdown</b> · {CATS.length} categories</>}/>
       <div className="content">
         <div className="kpi-row-4">
-          <Kpi accent="orange" label="Категорий"    value={String(CATS.length)} sub="активных" ico={I.cats}/>
-          <Kpi accent="green"  label="Топ категория"value="Дом и кухня"         sub="29% выручки" ico={I.star}/>
-          <Kpi accent="blue"   label="Общая выручка"value={fK(total)}           sub="все кат." ico={I.cash}/>
-          <Kpi accent="violet" label="Ср. маржа"    value="31.2%"               sub="по категориям" ico={I.pct}/>
+          <Kpi accent="orange" label="Categories"    value={String(CATS.length)} sub="active" ico={I.cats}/>
+          <Kpi accent="green"  label="Top category"value="Home & Kitchen"         sub="29% of revenue" ico={I.star}/>
+          <Kpi accent="blue"   label="Total revenue"value={fK(total)}           sub="all categories" ico={I.cash}/>
+          <Kpi accent="violet" label="Avg. margin"    value="31.2%"               sub="across categories" ico={I.pct}/>
         </div>
         <div className="grid-2">
           <div className="panel" style={{display:'flex',flexDirection:'column',alignItems:'center',gap:18}}>
-            <div className="panel-head" style={{width:'100%'}}><div><div className="panel-title">Доля выручки</div></div></div>
-            <Donut data={CATS.map(c=>({v:c.rev,c:c.c}))} size={180} label={fK(total)} sub="выручка"/>
+            <div className="panel-head" style={{width:'100%'}}><div><div className="panel-title">Revenue share</div></div></div>
+            <Donut data={CATS.map(c=>({v:c.rev,c:c.c}))} size={180} label={fK(total)} sub="revenue"/>
             <div style={{display:'flex',flexWrap:'wrap',gap:10,justifyContent:'center'}}>
               {CATS.map(c=><span key={c.name} style={{display:'inline-flex',alignItems:'center',gap:5,fontSize:11.5,color:'var(--mute)'}}><span style={{width:8,height:8,borderRadius:'50%',background:c.c,flexShrink:0}}/>{c.name} {c.share}%</span>)}
             </div>
           </div>
           <div className="panel">
-            <div className="panel-head"><div><div className="panel-title">По категориям</div><div className="panel-sub">Выручка и прибыль</div></div></div>
+            <div className="panel-head"><div><div className="panel-title">By category</div><div className="panel-sub">Revenue & profit</div></div></div>
             {CATS.map(c=>(
               <div className="brkrow" key={c.name}>
                 <span style={{width:10,height:10,borderRadius:3,background:c.c,flexShrink:0}}/>
@@ -883,27 +883,27 @@ function CatsScreen({onNav}){
   );
 }
 
-/* ═══ 10. ВОРОНКА ═══ */
+
 function FunnelScreen({onNav}){
   const steps=[
-    {l:'Показы',  v:'2 845 200',pct:'100%',  from:'всего',      c:'#ff6a1a'},
-    {l:'Клики',   v:'318 660',  pct:'11.2%', from:'от показов', c:'#ff8a3d'},
-    {l:'Корзина', v:'64 730',   pct:'20.3%', from:'от кликов',  c:'#ffb648'},
-    {l:'Заказ',   v:'39 420',   pct:'60.9%', from:'от корзины', c:'#28d17c',last:true},
+    {l:'Impressions',  v:'2 845 200',pct:'100%',  from:'total',      c:'#ff6a1a'},
+    {l:'Clicks',   v:'318 660',  pct:'11.2%', from:'of impressions', c:'#ff8a3d'},
+    {l:'Cart', v:'64 730',   pct:'20.3%', from:'of clicks',  c:'#ffb648'},
+    {l:'Order',   v:'39 420',   pct:'60.9%', from:'of carts', c:'#28d17c',last:true},
   ];
   return (
     <div className="app"><Sidebar active="funnel" onNav={onNav}/>
     <main className="main">
-      <Topbar title="Воронка" crumb={<><b>Конверсии</b> · 30 дней</>}/>
+      <Topbar title="Funnel" crumb={<><b>Conversions</b> · 30 days</>}/>
       <div className="content">
         <div className="kpi-row-4">
-          <Kpi accent="orange" label="Показы"     value="2.84M"   delta="9.1%"  dir="up"   spark={[80,85,88,92,90,95,100,98,102,108,112,118]} ico={I.cards}/>
-          <Kpi accent="blue"   label="CTR"        value="11.2" unit="%" delta="1.4 пп" dir="up" spark={[8,9,9,10,10,10,11,11,11,11,11,12]} sc="#5aa9ff" ico={I.pct}/>
-          <Kpi accent="violet" label="CR в заказ" value="12.3" unit="%" delta="0.6 пп" dir="up" spark={[10,11,11,11,12,12,12,12,12,12,12,13]} sc="#b07cff" ico={I.box}/>
-          <Kpi accent="green"  label="Ср. чек"    value="₽ 1 086" delta="3.2%" dir="up" spark={[980,1000,1010,1020,1030,1040,1050,1055,1062,1070,1078,1086]} sc="#28d17c" ico={I.cash}/>
+          <Kpi accent="orange" label="Impressions"     value="2.84M"   delta="9.1%"  dir="up"   spark={[80,85,88,92,90,95,100,98,102,108,112,118]} ico={I.cards}/>
+          <Kpi accent="blue"   label="CTR"        value="11.2" unit="%" delta="1.4 pp" dir="up" spark={[8,9,9,10,10,10,11,11,11,11,11,12]} sc="#5aa9ff" ico={I.pct}/>
+          <Kpi accent="violet" label="Order conversion" value="12.3" unit="%" delta="0.6 pp" dir="up" spark={[10,11,11,11,12,12,12,12,12,12,12,13]} sc="#b07cff" ico={I.box}/>
+          <Kpi accent="green"  label="Avg. order value"    value="₽ 1 086" delta="3.2%" dir="up" spark={[980,1000,1010,1020,1030,1040,1050,1055,1062,1070,1078,1086]} sc="#28d17c" ico={I.cash}/>
         </div>
         <div className="panel">
-          <div className="panel-head"><div><div className="panel-title">Путь покупателя</div><div className="panel-sub">Показ → Клик → Корзина → Заказ</div></div><span className="spill"><span className="k">Сквозная</span><span className="v orange-t">1.38%</span></span></div>
+          <div className="panel-head"><div><div className="panel-title">Customer journey</div><div className="panel-sub">Impression → Click → Cart → Order</div></div><span className="spill"><span className="k">Overall conversion</span><span className="v orange-t">1.38%</span></span></div>
           <div className="funnel-wrap">
             {steps.map((s,i)=>(
               <div key={i} className="fstep" style={{background:`linear-gradient(180deg,${s.c}1a 0%,${s.c}05 100%)`,borderColor:`${s.c}33`}}>
@@ -913,16 +913,16 @@ function FunnelScreen({onNav}){
             ))}
           </div>
           <div style={{display:'flex',gap:10,marginTop:18,flexWrap:'wrap'}}>
-            <span className="spill"><span className="k">Drop-off клики→корзина</span><span className="v red-t">79.7%</span></span>
-            <span className="spill"><span className="k">Брошенные корзины</span><span className="v">25 310</span></span>
-            <span className="spill"><span className="k">Время до покупки</span><span className="v">2.4 ч</span></span>
+            <span className="spill"><span className="k">Click-to-cart drop-off</span><span className="v red-t">79.7%</span></span>
+            <span className="spill"><span className="k">Abandoned carts</span><span className="v">25 310</span></span>
+            <span className="spill"><span className="k">Time to purchase</span><span className="v">2.4 h</span></span>
           </div>
         </div>
         <div className="grid-2">
           <div className="panel" style={{padding:'18px 0 4px'}}>
-            <div className="panel-head" style={{padding:'0 22px'}}><div><div className="panel-title">Топ карточек по CTR</div></div></div>
+            <div className="panel-head" style={{padding:'0 22px'}}><div><div className="panel-title">Top listings by CTR</div></div></div>
             <div style={{padding:'0 12px'}}>
-              <table className="tbl"><thead><tr><th>Товар</th><th>Площ.</th><th className="right">Показы</th><th className="right">CTR <span className="sort-arr">↓</span></th><th className="right">→Корзина</th><th className="right">→Заказ</th></tr></thead>
+              <table className="tbl"><thead><tr><th>Product</th><th>Platform</th><th className="right">Impressions</th><th className="right">CTR <span className="sort-arr">↓</span></th><th className="right">→Cart</th><th className="right">→Order</th></tr></thead>
               <tbody>{CARDS.slice(0,6).map((r,i)=>(
                 <tr key={i}>
                   <td><div className="pcell"><div className="pthumb">{r.e}</div><div style={{fontWeight:600}}>{r.name}</div></div></td>
@@ -936,15 +936,15 @@ function FunnelScreen({onNav}){
             </div>
           </div>
           <div className="panel">
-            <div className="panel-head"><div><div className="panel-title">По площадкам</div><div className="panel-sub">Воронка WB vs Ozon</div></div></div>
+            <div className="panel-head"><div><div className="panel-title">By platform</div><div className="panel-sub">WB vs Ozon funnel</div></div></div>
             {[{name:'Wildberries',k:'wb',c:'#ff3d8b',imp:1840,ctr:11.6,cart:21.4,ord:13.1,total:1.42},{name:'Ozon',k:'ozon',c:'#5aa9ff',imp:1005,ctr:10.4,cart:18.7,ord:11.6,total:1.28}].map(p=>(
               <div key={p.k} style={{padding:'14px 16px',borderRadius:16,background:'rgba(255,255,255,.02)',border:'1px solid var(--bs)',marginBottom:12}}>
                 <div className="row" style={{justifyContent:'space-between',marginBottom:12}}>
                   <span className={`pchip ${p.k}`}><span className="sw">{p.k==='wb'?'W':'O'}</span>{p.name}</span>
-                  <span className="spill"><span className="k">Сквозная</span><span className="v orange-t">{p.total}%</span></span>
+                  <span className="spill"><span className="k">Overall conversion</span><span className="v orange-t">{p.total}%</span></span>
                 </div>
                 <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:8}}>
-                  {[{l:'Показы',v:`${p.imp}k`},{l:'CTR',v:`${p.ctr}%`},{l:'Корзина',v:`${p.cart}%`},{l:'Заказ',v:`${p.ord}%`}].map((s,i)=>(
+                  {[{l:'Impressions',v:`${p.imp}k`},{l:'CTR',v:`${p.ctr}%`},{l:'Cart',v:`${p.cart}%`},{l:'Order',v:`${p.ord}%`}].map((s,i)=>(
                     <div key={i} style={{display:'flex',flexDirection:'column',gap:4}}>
                       <div style={{fontSize:10,color:'var(--mute)',textTransform:'uppercase',letterSpacing:'.08em'}}>{s.l}</div>
                       <div className="mono" style={{fontSize:15,fontWeight:800}}>{s.v}</div>
