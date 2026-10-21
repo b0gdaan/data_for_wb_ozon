@@ -13,7 +13,7 @@ load_dotenv()
 app = FastAPI(title="Marketplace Analytics API", docs_url=None, redoc_url=None)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[origin.strip() for origin in os.getenv("CORS_ORIGINS", "").split(",") if origin.strip()],
     allow_methods=["GET", "POST", "PATCH"],
     allow_headers=["*"],
 )
@@ -71,15 +71,28 @@ def kpis():
             LEFT JOIN products p ON p.source = s.source AND p.sku = s.sku
             WHERE s.sale_date >= %s AND s.sale_date < %s
         )
+        , cur_total AS (
+            SELECT COALESCE(SUM(revenue), 0) AS revenue,
+                   COALESCE(SUM(net_revenue), 0) AS net_revenue,
+                   COALESCE(SUM(quantity * cp), 0) AS cost,
+                   COALESCE(SUM(quantity), 0) AS units
+            FROM cur
+        ), prev_total AS (
+            SELECT COALESCE(SUM(revenue), 0) AS revenue,
+                   COALESCE(SUM(net_revenue), 0) AS net_revenue,
+                   COALESCE(SUM(quantity * cp), 0) AS cost,
+                   COALESCE(SUM(quantity), 0) AS units
+            FROM prev
+        )
         SELECT
-            ROUND(SUM(cur.revenue)::numeric, 0)                                          AS revenue_30d,
-            ROUND((SUM(cur.net_revenue) - SUM(cur.quantity * cur.cp))::numeric, 0)       AS profit_30d,
-            SUM(cur.quantity)                                                             AS units_30d,
-            ROUND(SUM(cur.net_revenue) / NULLIF(SUM(cur.revenue), 0) * 100, 1)           AS margin_pct,
-            ROUND(SUM(prev.revenue)::numeric, 0)                                         AS revenue_prev,
-            ROUND((SUM(prev.net_revenue) - SUM(prev.quantity * prev.cp))::numeric, 0)    AS profit_prev,
-            SUM(prev.quantity)                                                            AS units_prev
-        FROM cur, prev
+            ROUND(cur_total.revenue::numeric, 0) AS revenue_30d,
+            ROUND((cur_total.net_revenue - cur_total.cost)::numeric, 0) AS profit_30d,
+            cur_total.units AS units_30d,
+            ROUND(cur_total.net_revenue::numeric / NULLIF(cur_total.revenue, 0) * 100, 1) AS margin_pct,
+            ROUND(prev_total.revenue::numeric, 0) AS revenue_prev,
+            ROUND((prev_total.net_revenue - prev_total.cost)::numeric, 0) AS profit_prev,
+            prev_total.units AS units_prev
+        FROM cur_total CROSS JOIN prev_total
     """, [d30, d60, d30])
 
     extra = q("""

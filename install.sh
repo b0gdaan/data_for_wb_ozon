@@ -8,7 +8,7 @@ APP_USER="analytics"
 DB_NAME="analytics_db"
 DB_USER="analytics_user"
 DB_PASS="$(tr -dc A-Za-z0-9 </dev/urandom | head -c 16)"
-SERVICE="analytics-api"
+SERVICE="mp-api"
 
 echo "=== WB + Ozon Analytics Setup ==="
 
@@ -20,6 +20,7 @@ apt-get install -y -qq python3 python3-pip python3-venv postgresql nginx
 useradd -m -s /bin/bash "$APP_USER" 2>/dev/null || true
 mkdir -p "$APP_DIR"
 cp -r ./* "$APP_DIR/"
+cp .env.example "$APP_DIR/.env.example"
 chown -R "$APP_USER:$APP_USER" "$APP_DIR"
 
 # ── 3. PostgreSQL ─────────────────────────────────────────────────────────────
@@ -78,7 +79,7 @@ echo ""
 echo "╔══════════════════════════════════════════════════════╗"
 echo "║         INSTALLATION COMPLETE!                       ║"
 echo "╠══════════════════════════════════════════════════════╣"
-echo "║  Dashboard: http://$IP"
+echo "║  Dashboard on server: http://127.0.0.1:8080"
 echo "║"
 echo "║  1. Fill in API keys:  nano $APP_DIR/.env"
 echo "║  2. First data import: "

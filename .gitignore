@@ -24,3 +24,14 @@ Thumbs.db
 # Logs
 *.log
 /logs/
+
+# Local credentials and development artifacts
+.env.*
+!.env.example
+!.env.sample
+*.pem
+*.key
+*.p12
+*.pfx
+*.jks
+*.keystore
